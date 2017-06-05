@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Gaussian</title>
+  <script src="build/mathbox-bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/2.0.3/q.js"></script>
+  <script src="./Trajectory.js"></script>
+  <script src="./data.json"></script>
+  <script src="./matlabcolors.js"></script>
+  <link rel="stylesheet" href="build/mathbox.css">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+</head>
+<body>
+  <script type="application/glsl" id="lerp-shader">
+    // External sources
+    uniform float f;
+
+    // Source being resampled
+    vec4 vertexShader(vec4 xyzw, inout vec4 stpq) {
+      return vec4(xyzw.x, (1.0-f)*xyzw.y + f*xyzw.z, 0, 0);
+    }
+  </script>
+
+  <script>
+    var mathbox = mathBox({
+      plugins: ['core', 'controls', 'cursor', 'mathbox'],
+      controls: {
+        // Orbit controls, i.e. Euler angles, with gimbal lock
+        klass: THREE.OrbitControls,
+
+        // Trackball controls, i.e. Free quaternion rotation
+        //klass: THREE.TrackballControls,
+      },
+    });
+    var three = mathbox.three;
+
+    var time = 0;
+    three.on('update', function () {
+      var clock = three.Time.clock;
+      time = clock / 4;
+    });
+
+    dt = 0.1;
+
+    three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
+
+    if (window == top)
+      window.onkeydown = function (e) {
+        switch (e.keyCode) {
+          case 37:
+          case 38:
+            present.set('index', present.get('index') - 1);
+            break;
+          case 39:
+          case 40:
+            present.set('index', present.get('index') + 1);
+            break;
+        }
+        //console.log(present.get('index'));
+      }
+
+    // setInterval(function () {
+    //   present.set('index', (present.get('index') + 1) % (present.get('length') + 1));
+    // }, 2000);
+
+    var view = mathbox.cartesian({
+      id: 'the-view',
+      range: [[0, 50], [0,2.5], [-1, 1]],
+      scale: [2, 1, 0],
+    });
+
+    var present = view.present({
+      index: 1
+    })
+
+    mathbox.camera({ position: [0, 0, 2], proxy: true});
+
+    var data_obj = [17, 45, 90].map(function(angle) {
+      var name_c = 'sim_cost_' + angle;
+      var name_nc = 'sim_nocost_' + angle;
+      return {
+        a: angle,
+        c: rollout_data[name_c],
+        nc: rollout_data[name_nc]
+      }
+    })
+
+    data_obj.forEach(function(d) {
+      var a = view.array({
+        expr: function(emit, i) {
+          emit(i, d.nc.lengths[i], d.c.lengths[i]);
+        },
+        live: false,
+        width: 50,
+        channels: 3,
+        id: 'sim_' + d.a
+      });
+    });
+
+    view.matrix({
+      width: 51,
+      height: 50,
+      items: 3,
+      channels: 4,
+      expr: function(emit, i, j) {
+        var gnc = data_obj[i].nc.loss_pred[j];
+        var gc = data_obj[i].c.loss_pred[j];
+        emit(i, gnc.m, gc.m);
+        emit(i, gnc.m + 2*Math.sqrt(gnc.s), gc.m + 2*Math.sqrt(gc.s));
+        emit(i, gnc.m - 2*Math.sqrt(gnc.s), gc.m - 2*Math.sqrt(gc.s));
+      },
+      id: 'losses'
+    })
+
+
+
+    present
+      .slide({late: 3})
+        .reveal()
+          // create the axes
+          .axis({ axis: 'x'})
+          .axis({ axis: 'y' })
+          .grid({ axes: 'xy' })
+
+          // tick labels
+          .scale({
+            divide: 5,
+            origin: [0,0,0,0],
+            axis: "x",
+          })
+          .ticks()
+          .format().label()
+          .scale({
+            divide: 5,
+            origin: [0,0,0,0],
+            axis: "y",
+          })
+          .format({expr: function(x) { return x.toFixed(1); }}).label({offset: [-20, 0]})
+
+          // axis labels
+          .array({ data: [[25, 0, 0]], channels: 3 })
+          .text({ data: ['Iteration']})
+          .label({offset: [0, -40]})
+          .array({ data: [[0, 1.25, 0]], channels: 3 })
+          .text({ data: ['Time upright / s']})
+          .label({offset: [-40, 0]})
+
+          // plot the 90 data
+          .shader({ code: "#lerp-shader"})
+          .step({ script: [
+            {props: {f: 0}},
+            {props: {f: 0}},
+            {props: {f: 0}},
+            {props: {f: 1}}
+          ]})
+          .vertex()
+            .line({
+              points: '#sim_90',
+              color: colors.blue,
+              size: 15
+            })
+          .end()
+
+        .end()
+      .end()
+      .slide({late: 2})
+        .reveal()
+          // plot the 45 data
+          .shader({ code: "#lerp-shader"})
+          .step({ script: [
+            {props: {f: 0}},
+            {props: {f: 0}},
+            {props: {f: 1}}
+          ]})
+          .vertex()
+            .line({
+              points: '#sim_17',
+              color: colors.yellow,
+              size: 15
+            })
+          .end()
+        .end()
+      .end()
+      .slide({late: 1})
+        .reveal()
+          // plot the 45 data
+          .shader({ code: "#lerp-shader"})
+          .step({ script: [
+            {props: {f: 0}},
+            {props: {f: 1}}
+          ]})
+          .vertex()
+            .line({
+              points: '#sim_45',
+              color: colors.orange,
+              size: 15
+            })
+          .end()
+        .end()
+      .end()
+      .slide()
+
+  </script>
+</body>
+</html>
