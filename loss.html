@@ -2,10 +2,8 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Gaussian</title>
+  <title>Loss comparison</title>
   <script src="build/mathbox-bundle.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/2.0.3/q.js"></script>
-  <script src="./Trajectory.js"></script>
   <script src="./data.json"></script>
   <script src="./matlabcolors.js"></script>
   <link rel="stylesheet" href="build/mathbox.css">
@@ -22,21 +20,29 @@
     }
   </script>
   <script type="application/glsl" id="lerp2-shader">
-  // Two external sources
-  vec4 getSampleA(vec4 xyzw);
-  vec4 getSampleB(vec4 xyzw);
+  uniform float f;
 
-  // Original resampled source (unused)
-  vec4 getSampleDummy(vec4 xyzw);
+  // Original resampled source
+  vec4 getOriginalSample(vec4 xyzw);
 
   // Resample shader
   vec4 getSample(vec4 xyzw) {
     // Get two floats and multiply them
-    vec4 a = getSampleA(xyzw);
-    vec4 b = getSampleB(xyzw);
+    vec4 ia = vec4(xyzw.x, xyzw.y, 0.0, xyzw.w);
+    vec4 ib = vec4(xyzw.x, xyzw.y, 1.0, xyzw.w);
+    vec4 a = getOriginalSample(ia);
+    vec4 b = getOriginalSample(ib);
 
-    // Return as y value
-    return vec4(0.0, a * b, 0.0, 0.0);
+    // handles NaNs
+    if (f == 0.0) {
+      return a;
+    }
+    else if (f == 1.0) {
+      return b;
+    }
+    else {
+      return (1.0 - f)*a + f*b;
+    }
   }
   </script>
 
@@ -82,15 +88,6 @@
     //   present.set('index', (present.get('index') + 1) % (present.get('length') + 1));
     // }, 2000);
 
-    var view = mathbox.cartesian({
-      id: 'the-view',
-      range: [[0, 50], [0,2.5], [0, 1]],
-      scale: [2, 1, 0.5],
-    });
-
-    var present = view.present({
-      index: 1
-    })
 
 
     var data_obj = [17, 45, 90].map(function(angle) {
@@ -108,26 +105,41 @@
       90: colors.blue
     };
 
+    var lengths = {};
     data_obj.forEach(function(d) {
-      var a = view.array({
-        expr: function(emit, i) {
-          emit(i, d.nc.lengths[i], d.c.lengths[i]);
-        },
-        live: false,
-        width: 50,
-        channels: 3,
-        id: 'sim_' + d.a
-      });
+      lengths[d.a] = mathbox
+        .voxel({
+          width: 50,    // iterations
+          height: 1,   // timesteps
+          depth: 2,     // cost/nocost
+          channels: 2,
+          live: false,
+          expr: function(emit, i, j, k) {
+            var prop = k == 0 ? 'nc' : 'c';
+            var t = d[prop].lengths[i];
+            var losses = d[prop].loss[i];
+            emit(t, 0*losses[losses.length-1]);
+          }
+        })
+        .swizzle({order: 'zxyw'})
+        .spread({
+          alignWidth:  'first',
+          unit: 'absolute',
+          width:  [1, 0, 0],
+          id: 'lengths_' + d.a,
+        });
     });
 
+    var loss_pred = {};
     data_obj.forEach(function(d) {
-      view
+      var s = mathbox
         .voxel({
           width: 40,    // iterations
           height: 51,   // timesteps
           depth: 2,     // cost/nocost
           items: 3,     // mean, bounds
           channels: 1,
+          live: false,
           expr: function(emit, i, j, k) {
             var prop = k == 0 ? 'nc' : 'c';
             var g = d[prop].loss_pred[i][j];
@@ -142,29 +154,56 @@
           alignHeight: 'first',
           unit: 'absolute',
           width:  [1, 0, 0],
-          height: [0, 0.05, 0],
-          id: 'losses_' + d.a
+          height: [0, 0.05, 0]
         });
-      });
+      // hack: translation
+      var sc = s[0].controller;
+      sc.spreadOffset.value.setComponent(0, 10);
+      sc.spreadOffset = sc._attributes.make(sc._types.vec4());
 
-    var slides = present.slide({steps: 10});
+      loss_pred[d.a] = s;
+    });
+
+    var loss = {};
+    data_obj.forEach(function(d) {
+      loss[d.a] = mathbox
+        .voxel({
+          width: 50,    // iterations
+          height: 51,   // timesteps
+          depth: 2,     // cost/nocost
+          items: 1,
+          channels: 3,
+          live: false,
+          expr: function(emit, i, j, k) {
+            var prop = k == 0 ? 'nc' : 'c';
+            var losses = d[prop].loss[i];
+            if(j >= losses.length) {
+              j = losses.length - 1;
+            }
+            emit(i, 0.05*j, losses[j]);
+          },
+        })
+    });
+
+    var view = mathbox.cartesian({
+      id: 'the-view',
+      range: [[0, 50], [0,2.5], [0, 1]],
+      scale: [2, 1, 0.5]
+    })
+
+    var present = view.present({
+      index: 1
+    });
+
+    var slides = present.slide({steps: 12});
 
 
-    slides
-      .camera({proxy: false, up: [0, 0.001, 1], lookAt: [0, 0, 0]})
-      .step({
-        stops: [0, 0, 0, 0, 1, 2],
-        duration: 0.5,
-        script: {
-          '0': { position: [0, 0, 2.5]},
-          '1': { position: [0, -1, 4.5]},
-          '2': { position: [3, -2, 1.5]},
-        }
-      })
+    var camera = slides
+      .camera({proxy: true, up: [0, 0.001, 1], lookAt: [0, 0, 0]})
 
     // show grid and 90 data
     slides
-      .slide({from: 0, to: 10})
+      .slide({from: 0, to: 12})
         .reveal()
           // create the axes
           .axis({ axis: 'x'})
@@ -177,14 +216,17 @@
             origin: [0,0,0,0],
             axis: "x",
           })
-          .ticks()
-          .format().label()
+            .ticks()
+            .format()
+            .label()
           .scale({
             divide: 5,
             origin: [0,0,0,0],
             axis: "y",
           })
-          .format({expr: function(x) { return x.toFixed(1); }}).label({offset: [-20, 0]})
+            .ticks()
+            .format({expr: function(x) { return x.toFixed(1); }})
+            .label({offset: [-20, 0]})
 
           // axis labels
           .array({ data: [[25, 0, 0]], channels: 3 })
@@ -193,63 +235,94 @@
           .array({ data: [[0, 1.25, 0]], channels: 3 })
           .text({ data: ['Time upright / s']})
           .label({offset: [-40, 0]})
-
-          // plot the 90 data
-          .shader({ code: "#lerp-shader"})
-          .step({ script: [
-            {props: {f: 0}},
-            {props: {f: 0}},
-            {props: {f: 0}},
-            {props: {f: 1}},
-            {props: {f: 0}}
-          ]})
-          .vertex()
+    ;
+    // plot the length data
+    [90, 17, 45].forEach(function(a,i) {
+      slides
+        .slide({from: i, to: 12})
+          .reveal()
+            .shader({ code: "#lerp2-shader", classes: ['lerped']})
+            .resample({ source: lengths[a], sample: 'absolute', depth: 1})
             .line({
-              points: '#sim_90',
-              color: colors.blue,
-              size: 15
+              color: ang_cols[a],
+              width: 10,
+              classes: ['length-line']
             })
+    });
 
-    // plot the 45 data
-    slides
-      .slide({from: 1, to: 10})
-        .reveal()
-          .shader({ code: "#lerp-shader"})
-          .step({ script: [
-            {props: {f: 0}},
-            {props: {f: 0}},
-            {props: {f: 1}},
-            {props: {f: 0}}
-          ]})
-          .vertex()
-            .line({
-              points: '#sim_17',
-              color: colors.yellow,
-              size: 15
+    [90, 45, 17].map(function(a) {
+      slides
+        .slide({from: 3, to: 12})
+          .reveal({
+            durationEnter: 1.0,
+            stagger: [0, 0, 0, 1]
+          })
+            .shader({ code: "#lerp2-shader", classes: ['lerped']})
+            .resample({ source: loss[a], sample: 'absolute', depth: 1})
+            .split({
+              axis: 'x',
+              length:  5,
             })
+            .group()
+              .slice({ width: [0, 1] })
+              .join({ axis: 'x' })
+              .transpose({order: 'ywzx'})
+              .line({
+                color: ang_cols[a],
+                width: 5,
+                classes: ['loss-line']
+              })
+            .end()
+            .group()
+              .slice({ width: [1, 5] })
+              .join({ axis: 'x' })
+              .transpose({order: 'ywzx'})
+              .line({
+                color: ang_cols[a],
+                width: 2.5,
+                opacity: 0.25,
+                classes: ['loss-line']
+              })
+            .end()
+          .end()
+    });
 
-    // plot the 17 data
-    slides
-      .slide({from: 2, to: 10})
-        .reveal()
-          // plot the 45 data
-          .shader({ code: "#lerp-shader"})
-          .step({ script: [
-            {props: {f: 0}},
-            {props: {f: 1}},
-            {props: {f: 0}}
-          ]})
-          .vertex()
-            .line({
-              points: '#sim_45',
-              color: colors.orange,
-              size: 15
-            })
 
-
+    slides.step({
+      target: camera,
+      duration: 1,
+      stops: [0, 0, 0, 0, 4, 4, 6, 6, 4],
+      script: {
+        0: { position: [0, 0, 2.5]},
+        2: { position: [0, -1, 4.5]},
+        4: { position: [2.5, -2.5, 1]},
+        6: { position: [2.5, 0, 0]},
+      }
+    });
     // add 3d axis
+    slides.step({
+      target: view,
+      stops: [0, 0, 0, 0, 4, 4, 6, 6, 4],
+      script: {
+        0: {props: {scale: [2, 1, 0]}},
+        4: {props: {scale: [2, 1, 0.5]}},
+        6: {props: {scale: [0, 1, 0.5]}},
+      }
+    });
+
+    slides.select('.length-line').each(function(s) {
+      slides.step({
+        target: s,
+        stops: [0, 0, 0, 0, 0, 0, 7, 7, 0],
+        script: {
+          0: {props: {opacity: 1}},
+          7: {props: {opacity: 0}}
+        }
+      });
+    });
+
     slides
-      .slide({from: 4, to: 10})
+      .slide({from: 4, to: 12})
         .axis({axis: 'z'})
         .grid({axes: 'zy'})
         .grid({axes: 'zx', origin: [0, 2.5, 0, 0]})
@@ -258,39 +331,62 @@
           origin: [0,0,0,0],
           axis: "z",
         })
-        .ticks()
-        .format().label({offset: [-20, 0]})
+          .ticks()
+          .format()
+          .label({offset: [-20, 0]})
         .array({ data: [[0, 0, 0.5]], channels: 3 })
         .text({ data: ['Loss']})
         .label({offset: [-100, 0]})
     ;
-    [17, 45, 90].forEach(function(a, i) {
-      var c = ang_cols[a];
-      slides
-        .slide({from: 6+i, to: 6+i+1})
-          .slice({source: '#losses_' + a, depth: [0, 1]}) // no cost
-          .transform({position: [10, 0, 0]})
-            .reveal({
-              durationEnter: 1.0,
-              stagger: [0, 0, 0, 1]
-            })
-              // mean
-              .slice({items: [0, 1]})
-              .transpose({order: 'ywzx'})
-              .line({color: c})
-            .end()
-            // .reveal({
-            //   delayEnter: 1.0,
-            //   durationEnter: 1.0,
-            //   stagger: [0, 0, 0, 1]
-            // })
-            //   //bounds
-            //   .slice({items: [1, 3]})
-            //   .transpose({order: 'ywzx'})
-            //   .surface({color: c, opacity: 0.25})
-            // .end()
-          .end()
+    // [17].forEach(function(a, i) {
+    //   var c = ang_cols[a];
+    //   slides
+    //     .slide({from: 4+i, to: 12})
+    //       .reveal({
+    //         durationEnter: 1.0,
+    //         stagger: [0, 0, 0, 1]
+    //       })
+    //         // mean
+    //         .slice({items: [0, 1], source: loss[a]})
+    //         // .split({
+    //         //   axis: 'x',
+    //         //   length:  5,
+    //         // }).slice({
+    //         //   width: [0, 1],
+    //         // }).join({
+    //         //   axis: 'x',
+    //         // })
+    //         .transpose({order: 'ywzx'})
+    //         .shader({ code: "#lerp2-shader", classes: ['len-line']})
+    //         .resample({ sample: 'absolute', depth: 1})
+    //         .line({color: c, width: 5})
+    //       .end()
+    //       // .reveal({
+    //       //   delayEnter: 1.0,
+    //       //   durationEnter: 1.0,
+    //       //   stagger: [0, 0, 0, 1]
+    //       // })
+    //       //   //bounds
+    //       //   .slice({items: [1, 3]})
+    //       //   .transpose({order: 'ywzx'})
+    //       //   .surface({color: c, opacity: 0.25})
+    //       // .end()
+    // });
+
+    slides.select('.lerped').each(function(s) {
+      slides.step({
+        target: s,
+        trigger: 7,
+        script: [
+          {props: {f: 0}},
+          {props: {f: 1}}
+        ]
+      });
     });
+
+
+
+
 
   </script>
 </body>
