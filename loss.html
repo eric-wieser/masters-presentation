@@ -69,7 +69,7 @@
 
     three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
 
-    if (window == top)
+    if (window == top) {
       window.onkeydown = function (e) {
         switch (e.keyCode) {
           case 37:
@@ -83,6 +83,15 @@
         }
         //console.log(present.get('index'));
       }
+    }
+    else {
+      window.addEventListener('message', function(e) {
+        e = JSON.parse(e.data);
+        if(e.eventName == 'slide') {
+          present.set('index', e.value);
+        }
+      });
+    }
 
     // setInterval(function () {
     //   present.set('index', (present.get('index') + 1) % (present.get('length') + 1));
@@ -218,7 +227,7 @@
           })
             .ticks()
             .format()
-            .label()
+            .label({id: 'time-tlabel'})
           .scale({
             divide: 5,
             origin: [0,0,0,0],
@@ -226,21 +235,23 @@
           })
             .ticks()
             .format({expr: function(x) { return x.toFixed(1); }})
-            .label({offset: [-20, 0]})
+            .label({id: 'iter-tlabel'})
 
           // axis labels
           .array({ data: [[25, 0, 0]], channels: 3 })
           .text({ data: ['Iteration']})
-          .label({offset: [0, -40]})
+          .label({id: 'iter-label'})
           .array({ data: [[0, 1.25, 0]], channels: 3 })
           .text({ data: ['Time upright / s']})
-          .label({offset: [-40, 0]})
+          .label({id: 'time-label'})
     ;
     // plot the length data
     [90, 17, 45].forEach(function(a,i) {
       slides
         .slide({from: i, to: 12})
-          .reveal()
+          .reveal({
+            stagger: [10, 0, 0, 0]
+          })
             .shader({ code: "#lerp2-shader", classes: ['lerped']})
             .resample({ source: lengths[a], sample: 'absolute', depth: 1})
             .line({
@@ -250,12 +261,13 @@
             })
     });
 
-    [90, 45, 17].map(function(a) {
+    [90, 45, 17].map(function(a, i) {
       slides
         .slide({from: 3, to: 12})
           .reveal({
-            durationEnter: 1.0,
-            stagger: [0, 0, 0, 1]
+            delayEnter: 0.25*(2-i),
+            durationEnter: 0.5,
+            stagger: [0, 0, 0, 10]
           })
             .shader({ code: "#lerp2-shader", classes: ['lerped']})
             .resample({ source: loss[a], sample: 'absolute', depth: 1})
@@ -291,7 +303,7 @@
     slides.step({
       target: camera,
       duration: 1,
-      stops: [0, 0, 0, 0, 4, 4, 6, 6, 4],
+      stops: [0, 0, 0, 0, 4, 6, 6, 4],
       script: {
         0: { position: [0, 0, 2.5]},
         2: { position: [0, -1, 4.5]},
@@ -302,7 +314,7 @@
     // add 3d axis
     slides.step({
       target: view,
-      stops: [0, 0, 0, 0, 4, 4, 6, 6, 4],
+      stops: [0, 0, 0, 0, 4, 6, 6, 4],
       script: {
         0: {props: {scale: [2, 1, 0]}},
         4: {props: {scale: [2, 1, 0.5]}},
@@ -313,13 +325,21 @@
     slides.select('.length-line').each(function(s) {
       slides.step({
         target: s,
-        stops: [0, 0, 0, 0, 0, 0, 7, 7, 0],
+        stops: [0, 0, 0, 0, 0, 6, 6, 0],
         script: {
           0: {props: {opacity: 1}},
-          7: {props: {opacity: 0}}
+          6: {props: {opacity: 0}}
         }
       });
     });
+
+    // slides.step({
+    //   target: slides.select('#time-tlabel'),
+    //   stops: [0, 0, 0, 0, 4, 6, 6, 4],
+    //   script: {
+    //     0: {props: }{}
+    //   }
+    // })
 
     slides
       .slide({from: 4, to: 12})
@@ -376,11 +396,13 @@
     slides.select('.lerped').each(function(s) {
       slides.step({
         target: s,
-        trigger: 7,
-        script: [
-          {props: {f: 0}},
-          {props: {f: 1}}
-        ]
+        stops: [0, 0, 0, 0, 0, 0, 7, 7, 8, 9],
+        script: {
+          0: {props: {f: 0}},
+          7: {props: {f: 1}},
+          8: {props: {f: 0}},
+          9: {props: {f: 1}},
+        }
       });
     });
 

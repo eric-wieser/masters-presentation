@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="reveal.js/css/theme/serif.css">
+		<link rel="stylesheet" href="build/mathbox.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal.js/css/print/pdf.css' : 'reveal.js/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<style>
+		.two-col {
+			display: flex; flex-flow: row nowrap;
+		}
+		.two-col > div > img { object-fit: contain; }
+
+		.abs-tc {
+			position: absolute;
+			bottom: 50px !important;
+			left: 50px !important;
+			right: 50px !important;
+			top: auto !important;
+			z-index: 20;
+		}
+		.abs-tc {
+			position: absolute;
+			bottom: auto !important;
+			left: 50px !important;
+			right: 50px !important;
+			top: 50px !important;
+			z-index: 20;
+		}
+		section {
+			height: 100%;
+		}
+
+		.c-blue { color: rgb(0, 114, 189); }
+		.c-orange { color: rgb(217, 83, 25); }
+		.c-yellow { color: rgb(237, 177, 32); }
+		.c-purple { color: rgb(126, 47, 142); }
+		.c-green { color: rgb(119, 172, 48); }
+		.c-cyan { color: rgb(77, 190, 238); }
+		.c-red { color: rgb(162, 20, 47); }
+		</style>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>Machine learning for a miniature robotic unicycle</h1>
+					<p>Eric Wieser (<code>efw27@</code>)</p>
+					<p>Supervised by Prof. Carl Rasmussen (<code>cer54@</code>)</p>
+				</section>
+				<section>
+					<h2>Project goals</h2>
+					<p>Balance this unicycle</p>
+					<img src="images/front.png" class="plain stretch"/>
+				</section>
+				<section data-background-iframe="loss.html">
+					<section>
+						<h2>Simulation performance</h2>
+						<aside class="notes">
+						Let's take a look at the performance of the simulation
+						</aside>
+					</section>
+					<section>
+						<aside class="notes">
+							An easy way to measure this is simply how long the robot stays upright, as a function of iteration number.
+							Here's what we get for an idealized unicycle.
+						</aside>
+						<div class="abs-tc mathbox-outline-2">\[
+							\theta_\text{max} =
+								\class{c-blue}{90&deg;}
+						\]</div>
+					</section>
+					<section>
+						<aside class="notes">
+							And here's the unicycle with the roll limit modelled. Clearly, there's a problem.
+							Earlier work suggested we redo the frame to reduce this - optimistically, 45 degrees is achievable.
+						</aside>
+						<div class="abs-tc mathbox-outline-2">\[
+							\theta_\text{max} =
+								\class{c-blue}{90&deg;},\quad
+								\class{c-yellow}{17&deg;}
+						\]</div>
+					</section>
+					<section>
+						<aside class="notes">
+							But that doesn't really help.
+							We can't get much more from this graph as is.
+						</aside>
+						<div class="abs-tc mathbox-outline-2">\[
+							\theta_\text{max} =
+								\class{c-blue}{90&deg;},\quad
+								\class{c-orange}{45&deg;},\quad
+								\class{c-yellow}{17&deg;}
+						\]</div>
+					</section>
+					<section>
+						<aside class="notes">
+							Let's add a line to represent each run of the robot...
+						</aside>
+					</section>
+					<section>
+						<aside class="notes">
+							so that we can introduce another dimension, plotting the loss function over time
+						</aside>
+						<div class="abs-tc mathbox-outline-2">\[
+							L(\mathbf{x}) = 1 - \exp\left(-\frac{1}{2}\left[
+								\tfrac{d(\mathbf x)^2}{h^2} +
+								\tfrac{\phi^2}{(4\pi)^2}
+							\right]\right)
+						\]</div>
+					</section>
+					<section>
+						<aside class="notes">
+						</aside>
+					</section>
+				</section>
+			</div>
+		</div>
+
+		<script src="reveal.js/lib/js/head.min.js"></script>
+		<script src="reveal.js/js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'reveal.js/plugin/markdown/marked.js' },
+					{ src: 'reveal.js/plugin/markdown/markdown.js' },
+					{ src: 'reveal.js/plugin/math/math.js', async: true },
+					{ src: 'reveal.js/plugin/notes/notes.js', async: true },
+					{ src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				],
+				math: {
+					mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+					config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+				},
+
+				history: true,
+				width: "100%",
+				height: "100%",
+				margin: 0,
+				minScale: 1,
+				maxScale: 1,
+				center: false,
+				transition: 'fade'
+			});
+
+			var updateIframe = function (inds, el) {
+				var bg = Reveal.getSlideBackground(inds.h);
+				var iframe = bg.querySelector('iframe');
+				if (!el || el == iframe) {
+					iframe.contentWindow.postMessage(JSON.stringify({
+						namespace: 'reveal', eventName: 'slide', value: inds.v
+					}), '*');
+				}
+			};
+
+			Reveal.addEventListener( 'ready', function() {
+				Array.from(document.querySelectorAll('iframe')).forEach(function(el) {
+					el.addEventListener('load', function() {
+						updateIframe(Reveal.getIndices());
+					});
+				});
+			});
+			Reveal.addEventListener( 'slidechanged', function(e) {
+				updateIframe(Reveal.getIndices(e.currentSlide));
+			});
+
+		</script>
+	</body>
+</html>
