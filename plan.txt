@@ -1,0 +1,15 @@
+Intro
+
+History
+
+Quick summary of electrical problems
+
+Explain PILCO
+	Continous system
+	Discrete system
+	Probabilistic dynamics
+	State contraints
+
+State constraint results
+
+

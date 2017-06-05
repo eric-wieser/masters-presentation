@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Gaussian</title>
+  <script src="build/mathbox-bundle.js"></script>
+  <link rel="stylesheet" href="build/mathbox.css">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+</head>
+<body>
+  <script>
+    var mathbox = mathBox({
+      plugins: ['core', 'controls', 'cursor', 'mathbox'],
+      controls: {
+        // Orbit controls, i.e. Euler angles, with gimbal lock
+        klass: THREE.OrbitControls,
+
+        // Trackball controls, i.e. Free quaternion rotation
+        //klass: THREE.TrackballControls,
+      },
+    });
+    var three = mathbox.three;
+
+    var time = 0;
+    three.on('update', function () {
+      var clock = three.Time.clock;
+      time = clock / 4;
+    });
+
+    dt = 0.1;
+
+    three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
+
+    if (window == top)
+      window.onkeydown = function (e) {
+        switch (e.keyCode) {
+          case 37:
+          case 38:
+            present.set('index', present.get('index') - 1);
+            break;
+          case 39:
+          case 40:
+            present.set('index', present.get('index') + 1);
+            break;
+        }
+        //console.log(present.get('index'));
+      }
+
+    // setInterval(function () {
+    //   present.set('index', (present.get('index') + 1) % (present.get('length') + 1));
+    // }, 2000);
+
+    var view = mathbox.cartesian({
+      id: 'the-view',
+      range: [[-1, 1], [-1,0], [-1, 1]],
+      scale: [2, 1, 0],
+    });
+    three.on('update', function () {
+      r = view.get('range');
+      view.set('range', [r[0], [time-1, time], r[2]]);
+      mathbox.select('#the-grid').set('rangeY', [time-1, time]);
+      mathbox.select('#x-axis').set('origin', [0, time, 0, 0]);
+    });
+
+    var present = view.present({
+      index: 1
+    })
+
+    mathbox.camera({ position: [0, 0, 2], proxy: true});
+
+    function state(t) {
+      f = Math.PI;
+      return 0.25 * Math.sin(t * f)
+           + 0.25 * Math.sin(Math.sin(t * f) * f);
+    }
+    function dstate(t) {
+      f = Math.PI;
+      return 0.25 * f * Math.cos(t * f)
+           + 0.25 * (f * f * Math.cos(t*f)) * Math.cos(Math.sin(t * f) * f);
+    }
+
+    present
+      .slide()
+        .reveal()
+          .axis({
+            id: 'x-axis',
+            axis: 'x'
+          })
+          .array({
+            width: 1,
+            expr: function (emit, i, t) {
+              emit(state(time), time, dstate(time));
+            },
+            channels: 3,
+          })
+          .point({
+            color: '#c08000',
+            size: 15
+          })
+        .end()
+        .slide({late: 2})
+          .reveal({stagger: [0, 10, 0, 0]})
+            .axis({axis: 'y'})
+            .grid({axes: 'xy', id: 'the-grid'})
+            .interval({
+              width: 129,
+              axis: 'y',
+              expr: function (emit, y, i, t) {
+                emit(state(y), y, dstate(y));
+              },
+              channels: 3,
+            })
+            .line({
+              color: '#c08000',
+              size: 15
+            })
+          .end()
+        .end()
+        .slide({late: 1})
+          .array({
+            width: 10,
+            expr: function (emit, i, t) {
+              var discrete_t = Math.floor(time / dt) * dt - i * dt;
+              emit(state(discrete_t), discrete_t, dstate(discrete_t));
+              emit(state(discrete_t), discrete_t, 0);
+            },
+            channels: 3,
+            items: 2
+          })
+          .slice({items: [0,1]})
+          .point({
+            color: '#ff0000',
+            size: 15
+          })
+          .transpose({source: '<<', order: 'wyzx'})
+          .line()
+          .step({
+            target: '#the-view',
+            script: [{},{scale: [2, 1, 0.5]}]
+          })
+        .end()
+        .slide()
+          .camera({position: [0, 1, 2], proxy: true})
+        .end()
+  </script>
+</body>
+</html>
