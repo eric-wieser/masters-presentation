@@ -216,7 +216,7 @@
         .reveal()
           // create the axes
           .axis({ axis: 'x'})
-          .axis({ axis: 'y' })
+          .axis({ axis: 'y', origin: [50,0,0,0] })
           .grid({ axes: 'xy' })
 
           // tick labels
@@ -227,21 +227,21 @@
           })
             .ticks()
             .format()
-            .label({id: 'time-tlabel'})
+            .label({id: 'iter-tlabel'})
           .scale({
             divide: 5,
-            origin: [0,0,0,0],
+            origin: [50,0,0,0],
             axis: "y",
           })
             .ticks()
             .format({expr: function(x) { return x.toFixed(1); }})
-            .label({id: 'iter-tlabel'})
+            .label({id: 'time-tlabel'})
 
           // axis labels
           .array({ data: [[25, 0, 0]], channels: 3 })
           .text({ data: ['Iteration']})
           .label({id: 'iter-label'})
-          .array({ data: [[0, 1.25, 0]], channels: 3 })
+          .array({ data: [[50, 1.25, 0]], channels: 3 })
           .text({ data: ['Time upright / s']})
           .label({id: 'time-label'})
     ;
@@ -284,6 +284,11 @@
                 width: 5,
                 classes: ['loss-line']
               })
+              .slice({ width: [50, 51]})
+              .point({
+                color: ang_cols[a],
+                size: 10
+              })
             .end()
             .group()
               .slice({ width: [1, 5] })
@@ -295,6 +300,12 @@
                 opacity: 0.25,
                 classes: ['loss-line']
               })
+              .slice({ width: [50, 51]})
+              .point({
+                color: ang_cols[a],
+                opacity: 0.25,
+                size: 5
+              })
             .end()
           .end()
     });
@@ -305,18 +316,20 @@
       duration: 1,
       stops: [0, 0, 0, 0, 4, 6, 6, 4],
       script: {
-        0: { position: [0, 0, 2.5]},
+        0: { position: [0, 0, 3]},
         2: { position: [0, -1, 4.5]},
-        4: { position: [2.5, -2.5, 1]},
-        6: { position: [2.5, 0, 0]},
+        4: { position: [2.5, -2.5, 0.7]},
+        6: { position: [1.5, 0, 0]},
       }
     });
     // add 3d axis
     slides.step({
       target: view,
+      duration: 1,
       stops: [0, 0, 0, 0, 4, 6, 6, 4],
       script: {
         0: {props: {scale: [2, 1, 0]}},
+        2: {props: {scale: [2, 1, 0]}},
         4: {props: {scale: [2, 1, 0.5]}},
         6: {props: {scale: [0, 1, 0.5]}},
       }
@@ -325,10 +338,12 @@
     slides.select('.length-line').each(function(s) {
       slides.step({
         target: s,
-        stops: [0, 0, 0, 0, 0, 6, 6, 0],
+        stops: [0, 0, 0, 0, 5, 6, 6, 8],
         script: {
           0: {props: {opacity: 1}},
-          6: {props: {opacity: 0}}
+          5: {props: {opacity: 0.5}},
+          6: {props: {opacity: 0}},
+          8: {props: {opacity: 0.5}},
         }
       });
     });
@@ -392,7 +407,15 @@
     //       //   .surface({color: c, opacity: 0.25})
     //       // .end()
     // });
-
+    slides.select('axis').set({
+      color: '#000000',
+      width: 5
+    })
+    slides.select('ticks').set({
+      color: '#000000',
+      width: 5,
+      size: 20
+    })
     slides.select('.lerped').each(function(s) {
       slides.step({
         target: s,
@@ -405,6 +428,47 @@
         }
       });
     });
+
+    slides.step({
+      target: '#time-label',
+      stops: [0, 0, 0, 0, 5, 6, 6, 8, 8, 8],
+      script: {
+        0: {props: {offset: [60, 0]}},
+        5: {props: {offset: [60, -20]}},
+        6: {props: {offset: [0, -60]}},
+        8: {props: {offset: [60, -20]}},
+      }
+    })
+    slides.step({
+      target: '#time-tlabel',
+      stops: [0, 0, 0, 0, 5, 6, 6, 8, 8, 8],
+      script: {
+        0: {props: {offset: [20, 0]}},
+        5: {props: {offset: [20, -10]}},
+        6: {props: {offset: [0, -20]}},
+        8: {props: {offset: [20, -10]}},
+      }
+    })
+    slides.step({
+      target: '#iter-label',
+      stops: [0, 0, 0, 0, 5, 6, 6, 8, 8, 8],
+      script: {
+        0: {props: {offset: [0, -40]}},
+        5: {props: {offset: [-40, -40]}},
+        6: {props: {visible: false}},
+        8: {props: {offset: [-40, -40], visible: true}},
+      }
+    })
+    slides.step({
+      target: '#iter-tlabel',
+      stops: [0, 0, 0, 0, 5, 6, 6, 8, 8, 8],
+      script: {
+        5: {},
+        6: {props: {visible: false}},
+        8: {props: {visible: true}},
+      }
+    })
+
 
 
 
