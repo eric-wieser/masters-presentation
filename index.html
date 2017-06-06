@@ -23,11 +23,12 @@
 		</script>
 
 		<style>
-		.two-col {
+		.reveal .two-col {
 			flex: 1;
 			display: flex;
 			flex-flow: row nowrap;
 			align-items: center;
+			margin-bottom: 20px;
 		}
 		.two-col > div {flex: 1; text-align: left;}
 		.two-col > div > img { object-fit: contain; }
@@ -55,6 +56,9 @@
 			display: flex;
 			flex-direction: column;
 			justify-content: center;;
+		}
+		section.smaller {
+			font-size: 80%;
 		}
 		section.stack { padding: 0px !important; }
 
@@ -113,6 +117,10 @@
 		}
 
 		.invisible { visibility: hidden; }
+
+		.reveal sup {
+			font-size: 0.75em;
+		}
 		</style>
 	</head>
 	<body>
@@ -135,7 +143,7 @@
 				<section>
 					<h2>Project goals</h2>
 					<div class="two-col">
-						<div class="fill-photo" style="flex: 1; align-self: stretch; background-image: url(images/front.png)"></div>
+						<div class="fill-photo" style="align-self: stretch; background-image: url(images/front.png)"></div>
 						<div>
 							<p class="fragment">Balance this unicycle</p>
 							<p class="fragment">Fix problems identified in previous work</p>
@@ -207,10 +215,13 @@
 						<h2>Outstanding issues</h2>
 						<p class="fragment">
 							Automate data transfer with the
-							hardware&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+							hardware&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
+						<p class="invisible">
+							Improve release procedure&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
+						</p>
 						<p class="invisible">
 							Add simulation model of the small
-							unicycle&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+							unicycle&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
 						<p class="invisible">
 							Redesign the hardware to increase the roll
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
@@ -265,10 +276,54 @@
 						<h2>Outstanding issues</h2>
 						<p>
 							Automate data transfer with the
-							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
+						<p class="fragment">
+							Improve release procedure&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
+						</p>
+						<p class="invisible">
+							Add simulation model of the small
+							unicycle&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
+						<p class="invisible">
+							Redesign the hardware to increase the roll
+							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
+					</section>
+					<section>
+						<h3>Release procedure</h3>
+						<h4>Reaction times</h4>
+						<div class="two-col">
+							<div>
+								<div class="fragment">
+								<small style="font-size: 0.25em; display: block">
+									Gideon Praveen Kumar Jose Shelton. “Comparison between Auditory and Visual Simple
+		Reaction Times”. In: Neuroscience and Medicine 1.1 (2010)
+								</small>
+								Human visual &mdash; 330ms</div>
+								<div class="fragment">Human audio &mdash; 280ms</div>
+								
+								<div class="fragment">Arduino switch release &mdash; <i>really fast!</i></div>
+							</div>
+							<div class="fragment fill-photo" style="align-self: stretch; flex: 0.5; background-image: url(images/electronic-back.png);"> </div>
+						</div>
+						<div class="fragment">
+							<h4>Repeatability of orientation</h4>
+							<ul>
+								<li>Build a rig to drop perfectly <em class="c-red fragment" style="font-size: 0.75em">✘ Impractical</em></li>
+								<li>Learn the initial orientation <em class="c-red fragment" style="font-size: 0.75em">✘ Must be online</em></li>
+								<li class="fragment">Measure the initial orientation <em class="c-green fragment" style="font-size: 0.75em">✔ Use the accelerometer</em></li>
+							</ul>
+						</div>
+					</section>
+					<section>
+						<h2>Outstanding issues</h2>
+						<p>
+							Automate data transfer with the
+							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
+						<p>
+							Improve release procedure&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
+						</p>
 						<p class="fragment">
 							Add simulation model of the small
-							unicycle&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+							unicycle&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
 						<p class="invisible">
 							Redesign the hardware to increase the roll
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
@@ -283,17 +338,21 @@
 						<h2>Outstanding issues</h2>
 						<p>
 							Automate data transfer with the
-							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
+						<p>
+							Measure initial robot orientation
+							accelerometer&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
+						</p>
 						<p>
 							Add simulation model of the small
-							unicycle&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+							unicycle&nbsp;<span class="fragment c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
 						<p class="fragment">
 							Redesign the hardware to increase the roll
 							limit&nbsp;<strong class="fragment c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
 					</section>
 				</section>
 
-				<section data-background-iframe="loss.html">
+				<section data-background-isframe="loss.html">
 					<section data-transition="fade">
 						<h2>Effect of roll limit</h2>
 						<aside class="notes">
