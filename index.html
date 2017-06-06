@@ -218,9 +218,11 @@
 							\]</small>
 						</div>
 					</section>
-					<section>
-						<h3>Gaussian processes</h3>
-						<p>TODO</p>
+					<section data-background-iframe="gauss.html">
+						<div class="abs-tc mathbox-outline-2"><h3>Gaussian processes</h3></div>
+						<span class="fragment"></span>
+						<span class="fragment"></span>
+						<span class="fragment"></span>
 					</section>
 				</section>
 
@@ -569,12 +571,29 @@
 			});
 
 			var updateIframe = function (inds, el) {
-				var bg = Reveal.getSlideBackground(inds.h);
-				var iframe = bg.querySelector('iframe');
-				if (!el || el == iframe) {
+				var hbg = Reveal.getSlideBackground(inds.h);
+				var vbg = Reveal.getSlideBackground(inds.h, inds.v);
+
+				var iframe = vbg.querySelector('iframe');
+				var i;
+				if (iframe) {
+					i = inds.f + 1
+				}
+				else {
+					var iframe = hbg.querySelector('iframe');
+					if (iframe) {
+						i = inds.v;
+					}
+					else {
+						return;
+					}
+				}
+
+				if(!el || el == iframe) {
 					iframe.contentWindow.postMessage(JSON.stringify({
-						namespace: 'reveal', eventName: 'slide', value: inds.v
+						namespace: 'reveal', eventName: 'slide', value: i
 					}), '*');
+					return;
 				}
 			};
 
@@ -582,13 +601,32 @@
 				Array.from(document.querySelectorAll('iframe')).forEach(function(el) {
 					el.allowtransparency = "true";
 					el.addEventListener('load', function() {
-						updateIframe(Reveal.getIndices());
+						updateIframe(Reveal.getIndices(), el);
 					});
 				});
 			});
 			Reveal.addEventListener( 'slidechanged', function(e) {
 				updateIframe(Reveal.getIndices(e.currentSlide));
 			});
+
+			var onFragmentChanged2 = function(e) {
+				var f = Reveal.getIndices().f;
+				var el = e.fragment;
+				while(el && !el.matches('section')) el = el.parentNode;
+				var iframe = el.querySelector('iframe');
+				if (iframe) {
+					iframe.contentWindow.postMessage(JSON.stringify({
+						namespace: 'reveal', eventName: 'slide', value: f+1
+					}), '*');
+				}
+			}
+
+			var onFragmentChanged = function(e) {
+				updateIframe(Reveal.getIndices());
+			}
+
+			Reveal.addEventListener( 'fragmentshown', onFragmentChanged);
+			Reveal.addEventListener( 'fragmenthidden', onFragmentChanged);
 
 		</script>
 	</body>

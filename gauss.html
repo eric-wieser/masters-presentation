@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Gaussian comparison</title>
+  <script src="build/mathbox-bundle.js"></script>
+  <script src="./matlabcolors.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.13.3/math.min.js"></script>
+  <link rel="stylesheet" href="build/mathbox.css">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+  <style type="text/css">
+    body {background:none transparent;}
+  </style>
+</head>
+<body>
+  <script type="application/glsl" id="fragment-shader">
+  uniform int axis;
+  vec4 fragmentShader(vec4 rgba, inout vec4 stpq) {
+    if (axis == 0)
+      return vec4(rgba.rgb, rgba.a*(1.0-stpq.s));
+    else if(axis == 1)
+      return vec4(rgba.rgb, rgba.a*(1.0-stpq.t));
+    else if(axis == 2)
+      return vec4(rgba.rgb, rgba.a*(1.0-stpq.p));
+    else
+      return vec4(rgba.rgb, rgba.a*(1.0-stpq.q));
+  }
+  </script>
+
+  <script type="application/glsl" id="z-to-gray-shader">
+  uniform float maxZ;
+
+  // Original resampled source
+  vec4 getOriginalSample(vec4 xyzw);
+
+  // Resample shader
+  vec4 getSample(vec4 xyzw) {
+    float g = (getOriginalSample(xyzw).z / maxZ);
+    return vec4(0.0, 0.0, 0.0, g);
+  }
+  </script>
+
+  <script type="application/glsl" id="lerpz-shader">
+  uniform float f;
+
+  // Original resampled source
+  vec4 getOriginalSample(vec4 xyzw);
+
+  // Resample shader
+  vec4 getSample(vec4 xyzw) {
+    vec4 ia = vec4(xyzw.x, xyzw.y, floor(f), xyzw.w);
+    vec4 ib = vec4(xyzw.x, xyzw.y, ceil(f), xyzw.w);
+    vec4 a = getOriginalSample(ia);
+    vec4 b = getOriginalSample(ib);
+
+    float df = fract(f);
+
+    // handles NaNs and infs
+    if (df == 0.0) {
+      return a;
+    }
+    else if (df == 1.0) {
+      return b;
+    }
+    else {
+      return (1.0 - df)*a + df*b;
+    }
+  }
+  </script>
+
+  <script>
+    var mathbox = mathBox({
+      plugins: ['core', 'controls', 'cursor', 'mathbox'],
+      renderer: {
+        parameters: {alpha: true, antialias: true},
+      },
+      controls: {
+        // Orbit controls, i.e. Euler angles, with gimbal lock
+        // klass: THREE.OrbitControls,
+
+        // Trackball controls, i.e. Free quaternion rotation
+        klass: THREE.TrackballControls,
+        parameters: {
+          noPan: true
+        }
+      },
+      splash:{ color: 'blue' }
+
+    });
+    var three = mathbox.three;
+
+    var time = 0;
+    three.on('update', function () {
+      var clock = three.Time.clock;
+      time = clock / 4;
+    });
+
+    dt = 0.1;
+
+    three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 0.0);
+
+    if (window == top) {
+      window.onkeydown = function (e) {
+        switch (e.keyCode) {
+          case 37:
+          case 38:
+            present.set('index', present.get('index') - 1);
+            break;
+          case 39:
+          case 40:
+            present.set('index', present.get('index') + 1);
+            break;
+        }
+        //console.log(present.get('index'));
+      }
+    }
+    else {
+      window.addEventListener('message', function(e) {
+        e = JSON.parse(e.data);
+        if(e.eventName == 'slide') {
+          present.set('index', e.value);
+        }
+      });
+    }
+
+    // math stuff
+    function N0_pdf(x) {
+      return Math.exp(-0.5*x*x) / Math.sqrt(τ);
+    }
+    function N_pdf(x, mu, sigma) {
+      return N0_pdf((x - mu) / sigma) / sigma;
+    }
+    function N0_sample() {
+      var u = 1 - Math.random();
+      var v = 1 - Math.random();
+      return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+    }
+
+
+    var view = mathbox.cartesian({
+      id: 'the-view',
+      range: [[-3, 3], [-3,3], [0, 0.25]],
+      scale: [2, 0, 1]
+    })
+
+    var present = view.present({
+      index: 0
+    });
+
+    var slides = present.slide({steps: 12});
+
+
+    var camera = slides
+      .camera({proxy: true, up: [0, 0, 1], position: [0, -3, 0], lookAt: [0, 0, 0]})
+
+    var dim_shader = slides
+      .shader({code: '#lerpz-shader'});
+    dim_shader
+      .step({
+        script: [
+          {props: {f: 0}},
+          {props: {f: 1}}
+        ]
+      });
+
+    slides
+      .step({
+        target: view,
+        script: [
+          {props: {scale: [2, 0, 1], range: [[-3, 3], [-3,3], [0, 0.5]]}},
+          {props: {scale: [2, 2, 1], range: [[-3, 3], [-3,3], [0, 0.25]]}},
+          {props: {scale: [2, 2, 0], range: [[-3, 3], [-3,3], [0, 0.25]]}}
+        ]
+      });
+
+    slides
+      .step({
+        target: camera,
+        script: [
+          {props: {position: [0, -3, 0]}},
+          {props: {position: [3, -2, 0.5]}},
+          {props: {position: [0, 0, 5], up: [0, 1, 0]}}
+        ]
+      });
+
+    // show grid and 90 data
+    slides
+      .slide({from: 0, to: 10})
+        .reveal()
+          // create the axes
+          .axis({ axis: 'x'})
+          .axis({ axis: 'z'})
+
+          // axis labels
+          .array({ data: [[3, 0, 0]], channels: 3 })
+          .text({ data: ['x₀'] })
+          .label()
+          .voxel({ data: [[[[0, 0, 0.5]]], [[[0, 0, 0.25]]]], channels: 3})
+          .resample({shader: dim_shader, depth: 1})
+          .text({ data: ['p(x)'] })
+          .label();
+
+    slides
+      .slide({from: 1, to: 10})
+        .reveal()
+          .axis({ axis: 'y'})
+          .grid({ axes: 'xy' })
+
+          .array({ data: [[0, 3, 0]], channels: 3 })
+          .text({ data: ['x₁'] })
+          .label()
+
+
+    var pdf = view.volume({
+      width: 65,
+      height: 65,
+      depth: 3,
+      channels: 3,
+      live: false,
+      expr: function(emit, x, y, z, i, j, k) {
+        var px = N0_pdf(x);
+        if(k == 0)
+          emit(x, y, px);
+        else if(k == 1)
+          emit(x, y, px*N0_pdf(y));
+      }
+    });
+
+    var pdf_shader = view.shader({code: 'z-to-gray-shader', maxZ: N0_pdf(0)*N0_pdf(0)});
+
+    var last_sampled = 0;
+
+    var samples = view.array({
+      width: 1,
+      channels: 3,
+      history: 10,
+      fps: 10,
+      limit: 1,
+      items: 4,
+      expr: function(emit, i, time, delta) {
+        var x0 = N0_sample(), x1 = N0_sample();
+        emit(x0, x1, 0);
+        emit(x0, x1, N0_pdf(x0));
+        emit(x0, x1, 0);
+        emit(x0, x1, N0_pdf(x0)*N0_pdf(x1));
+      }
+    }).split({axis: 'w', length: 2}).transpose({order: 'yzxw'});
+
+
+    pdf     = view.resample({source: pdf, shader: dim_shader, depth: 1}).memo();
+    samples = view.resample({source: samples, shader: dim_shader, depth: 1}).memo();
+
+    slides
+      .slide({from: 0, to: 1})
+        .slice({source: pdf, height: [32, 33]}).line({color: 'black'})
+
+    slides
+      .slide({from: 0, to: 3})
+        .slice({source: samples, items: [1, 2]})
+        .shader({code: '#fragment-shader', axis: 1})
+        .fragment({pass: 'light'})
+          .point({color: colors.green, size: 40, zOrder:2})
+        .end()
+        .shader({code: '#fragment-shader', axis: 1})
+        .fragment({pass: 'light'})
+          .transpose({source: samples, order: 'wyxz'})
+          .line({color: colors.green, width: 10})
+        .end()
+
+
+    slides
+      .slide({from: 1, to: 12})
+        .transpose({source: pdf})
+        .group()
+          .resample({shader: pdf_shader})
+          .surface({color: 'white', colors: '<', points: '<<', shaded: false})
+            .step({
+              script: [
+                {props: {opacity: 0.5}},
+                {props: {opacity: 1, zBias: -20}},
+              ]
+            })
+        .end()
+    slides
+      .slide({from: 1, to:2})
+        .transpose({source: pdf})
+        .line({color: 'black'})
+        .transpose({order: 'yx'})
+        .line({color: 'black'})
+
+    ;
+
+
+    slides.select('axis').set({
+      color: '#000000',
+      width: 5
+    })
+
+
+
+  </script>
+</body>
+</html>
