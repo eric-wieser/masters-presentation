@@ -71,7 +71,11 @@
 			flex-direction: column;
 			justify-content: center;;
 		}
-		section.smaller {
+		section.smaller > p,
+		section.smaller > div,
+		section.smaller > span,
+		section.smaller > ol,
+		section.smaller > ul {
 			font-size: 80%;
 		}
 		section.stack { padding: 0px !important; }
@@ -174,7 +178,7 @@
 				</section>
 
 				<section>
-					<section>
+					<section class="smaller">
 						<aside class="notes">
 							A useful technique in control theory is optimal control, which lets you quantify how good a controller is, and then pick the best one.
 
@@ -216,6 +220,9 @@
 									\bm{z}\tind{i} &= \begin{bmatrix}\bm{x}\tind{i} \\ \bm{u}\tind{i}\end{bmatrix}
 								\end{align}
 							\]</small>
+						</div>
+						<div class="fragment">
+							Advantages: data-efficient, immune to modelling mistakes
 						</div>
 					</section>
 					<section data-background-iframe="gauss.html">
