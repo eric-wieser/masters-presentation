@@ -24,8 +24,12 @@
 
 		<style>
 		.two-col {
-			display: flex; flex-flow: row nowrap;
+			flex: 1;
+			display: flex;
+			flex-flow: row nowrap;
+			align-items: center;
 		}
+		.two-col > div {flex: 1; text-align: left;}
 		.two-col > div > img { object-fit: contain; }
 
 		.abs-tc {
@@ -45,7 +49,30 @@
 			z-index: 20;
 		}
 		section {
+			padding: 20px !important;
 			height: 100%;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;;
+		}
+		section.stack { padding: 0px !important; }
+
+		div.fill-photo {
+			background-size: contain;
+			background-position: 50% 50%;
+			background-repeat: no-repeat;
+		}
+
+		.reveal h2 small {
+			font-size: 0.25em;
+			color: gray;
+			display: block;
+			margin-top: -0.5em;
+		}
+
+		.reveal h1 {
+			font-size: 2.5em;
 		}
 
 		.c-blue { color: rgb(0, 114, 189); }
@@ -55,22 +82,111 @@
 		.c-green { color: rgb(119, 172, 48); }
 		.c-cyan { color: rgb(77, 190, 238); }
 		.c-red { color: rgb(162, 20, 47); }
+
+		.pilco {font-variant: small-caps !important; }
 		</style>
 	</head>
 	<body>
+		<div style="display: none">\[
+		\newcommand{\tind}[1]{^{(#1)}}
+		\DeclareMathOperator*{\argmin}{arg\,min}
+		\newcommand{\bm}[1]{\mathbf{#1}}
+		\]</div>
 		<div class="reveal">
 			<div class="slides">
-				<section>
+				<section data-transition="slide">
 					<h1>Machine learning for a miniature robotic unicycle</h1>
 					<p>Eric Wieser (<code>efw27@</code>)</p>
-					<p>Supervised by Prof. Carl Rasmussen (<code>cer54@</code>)</p>
+					<p><small>Supervised by Prof. Carl Rasmussen (<code>cer54@</code>)</small></p>
+					<aside class="notes">
+						Hi, I’m Eric, and my project is on using Machine Learning to find a controller for a miniature unicycle
+					</aside>
 				</section>
-				<section>
+
+				<section data-transition="slide">
 					<h2>Project goals</h2>
-					<p>Balance this unicycle</p>
-					<img src="images/front.png" class="plain stretch"/>
+					<div class="two-col">
+						<div class="fill-photo" style="flex: 1; height: 100%; background-image: url(images/front.png)"></div>
+						<div>
+							<p class="fragment">Balance this unicycle</p>
+							<p class="fragment">Fix problems identified in previous work</p>
+							<p class="fragment">Improve the tools to make similar projects easier in future</p>
+						</div>
+					</div>
+					<aside class="notes">
+						The main goal of course, is to balance this unicycle.
+
+						This isn't the first time that's been tried - previous work showed some success, but raised a lot of issues.
+
+						The final goal was to try and improve the tools to expose issues more clearly.
+					</aside>
 				</section>
-				<section data-background-iframe="loss.html">
+
+				<section data-transition="slide">
+					<section data-transition="slide">
+						<aside class="notes">
+							A useful technique in control theory is optimal control, which lets you quantify how good a controller is, and then pick the best one.
+
+							Problem is, this needs a system model - and if the model is wrong, then the controller is unlikely to be optimal or stable.
+
+							TODO
+						</aside>
+						<h2><span class="pilco">Pilco</span><small>Probabilistic Inference for Learning Control</small></h2>
+						<div class="fragment" data-fragment-index="1">
+							<p>
+								Optimal control finds a <span class="c-blue">policy</span> for a <span class="c-green">system</span>
+								minimizing a <span class="c-purple">cost function</span> over a horizon
+							</p>
+							<small>\[
+								\begin{alignat}{2}
+								\text{find}&& \quad
+									\pi^*(\bm{x}) &= \argmin_{\pi(\bm{x})}
+										J(\bm{x}\tind\cdot, \bm{u}\tind\cdot)
+										\quad \text{where} \quad
+										J(\bm{x}\tind\cdot, \bm{u}\tind\cdot) = \sum_{i=0}^{i=N}
+										\class{c-purple}{c(\bm{x}\tind{i}, \bm{u}\tind{i})}\quad \\ \label{eq:optimal}
+								\text{st.}&& \quad
+									\class{c-green}{\bm{x}\tind{i+1}} &\class{c-green}{= f(\bm{x}\tind{i}, \bm{u}\tind{i})} \\ \nonumber
+								&&
+									\class{c-blue}{\bm{u}\tind{i}} &\class{c-blue}{= \pi(\bm{x}\tind{i})}\, \nonumber
+							\end{alignat}
+							\]</small>
+						</div>
+						<div class="fragment" data-fragment-index="2">
+							<p>
+								Needs a <span class="c-green">system model</span>
+								<span class="fragment"  data-fragment-index="3">&mdash; <span class="pilco">Pilco</span> learns a probabilistic one using <span class="c-cyan">Gaussian process</span> regression</span>
+							</p>
+							<small class="fragment" data-fragment-index="3">\[
+								\begin{align}
+									\bm{x}\tind{i + 1} - \bm{x}\tind{i} &= \class{c-cyan}{f_j(\bm{z}\tind{i})
+									\sim \mathrm{GP}(m_j(\bm{z}), K_j(\bm{z}_1, \bm{z}_2))},
+									&
+									\bm{z}\tind{i} &= \begin{bmatrix}\bm{x}\tind{i} \\ \bm{u}\tind{i}\end{bmatrix}
+								\end{align}
+							\]</small>
+						</div>
+					</section>
+					<section>
+						<h3>Gaussian processes</h3>
+						<p>TODO</p>
+					</section>
+				</section>
+
+				<section>
+					<h2>Outstanding issues</h2>
+					<p class="fragment" data-fragment-index="1">
+						Automate data transfer with the
+						hardware&nbsp;<span data-fragment-index="2" class="c-green fragment mathbox-outline-2" style="font-size: 1.5em">&#10004;</span> </p>
+					<p class="fragment" data-fragment-index="2">
+						Improve simulation model of the small
+						unicycle&nbsp;<span data-fragment-index="3" class="c-green fragment mathbox-outline-2" style="font-size: 1.5em">&#10004;</span> </p>
+					<p class="fragment" data-fragment-index="3">
+						Redesign the hardware to increase the roll
+						limit&nbsp;<strong data-fragment-index="4" class="c-yellow fragment mathbox-outline-2" style="font-size: 1.5em">?</strong>   </p>
+				</section>
+
+				<section data-background-iframe="loss.html"  data-transition="slide">
 					<section>
 						<h2>Simulation performance</h2>
 						<aside class="notes">
@@ -154,14 +270,15 @@
 					config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
 				},
 
-				history: true,
-				width: "100%",
-				height: "100%",
-				margin: 0,
-				minScale: 1,
-				maxScale: 1,
+				// history: true,
+				// width: "100%",
+				// height: "100%",
+				// margin: 0,
+				// minScale: 0.2,
+				// maxScale: 1.5,
 				center: false,
-				transition: 'fade'
+				transition: 'fade',
+				display: 'flex'
 			});
 
 			var updateIframe = function (inds, el) {
