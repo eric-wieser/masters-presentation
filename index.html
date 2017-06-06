@@ -33,6 +33,20 @@
 		.two-col > div {flex: 1; text-align: left;}
 		.two-col > div > img { object-fit: contain; }
 
+		.reveal .image-row {
+			display: flex;
+			flex-flow: row nowrap;
+			align-items: center;
+			margin-bottom: 20px;
+		}
+		.reveal .image-row > div {
+			flex: 1 1 0;
+			font-size: 0.5em;
+		}
+		.reveal .image-row > div > img {
+			margin-bottom: 0;
+		}
+
 		.abs-tc {
 			position: absolute;
 			bottom: 50px !important;
@@ -425,14 +439,26 @@
 				<section class="smaller">
 					<h2>New hardware issues</h2>
 					<h3>Electrical short</h3>
-					<div class="two-col">
-						<div class="fill-photo" style="align-self: stretch; background-image: url(images/short-motor.jpg)"></div>
+					<div class="image-row">
+						<div>
+							<img src="images/short-motor.jpg" />
+							Exposed metal
+						</div>
 						&nbsp;+&nbsp;
-						<div class="fill-photo" style="align-self: stretch; background-image: url(images/standoffs.jpg)"></div>
+						<div>
+							<img src="images/standoffs.jpg" />
+							Loose fastening
+						</div>
 						&nbsp;=&nbsp;
-						<div class="fill-photo" style="align-self: stretch; background-image: url(images/wires.jpg)"></div>
+						<div>
+							<img src="images/wires.jpg" />
+							Molten wires
+						</div>
 						&nbsp;+&nbsp;
-						<div class="fill-photo" style="align-self: stretch; background-image: url(images/finger.jpg)"></div>
+						<div>
+							<img src="images/finger.jpg" />
+							Injury
+						</div>
 					</div>
 					<h4>Lessons</h4>
 					<ol>
