@@ -13,16 +13,7 @@
   </style>
 </head>
 <body>
-  <script type="application/glsl" id="lerp-shader">
-    // External sources
-    uniform float f;
-
-    // Source being resampled
-    vec4 vertexShader(vec4 xyzw, inout vec4 stpq) {
-      return vec4(xyzw.x, (1.0-f)*xyzw.y + f*xyzw.z, 0, 0);
-    }
-  </script>
-  <script type="application/glsl" id="lerp2-shader">
+  <script type="application/glsl" id="lerpz-shader">
   uniform float f;
 
   // Original resampled source
@@ -30,21 +21,22 @@
 
   // Resample shader
   vec4 getSample(vec4 xyzw) {
-    // Get two floats and multiply them
-    vec4 ia = vec4(xyzw.x, xyzw.y, 0.0, xyzw.w);
-    vec4 ib = vec4(xyzw.x, xyzw.y, 1.0, xyzw.w);
+    vec4 ia = vec4(xyzw.x, xyzw.y, floor(f), xyzw.w);
+    vec4 ib = vec4(xyzw.x, xyzw.y, ceil(f), xyzw.w);
     vec4 a = getOriginalSample(ia);
     vec4 b = getOriginalSample(ib);
 
-    // handles NaNs
-    if (f == 0.0) {
+    float df = fract(f);
+
+    // handles NaNs and infs
+    if (df == 0.0) {
       return a;
     }
-    else if (f == 1.0) {
+    else if (df == 1.0) {
       return b;
     }
     else {
-      return (1.0 - f)*a + f*b;
+      return (1.0 - df)*a + df*b;
     }
   }
   </script>
@@ -258,7 +250,7 @@
           .reveal({
             stagger: [10, 0, 0, 0]
           })
-            .shader({ code: "#lerp2-shader", classes: ['lerped']})
+            .shader({ code: "#lerpz-shader", classes: ['lerped']})
             .resample({ source: lengths[a], sample: 'absolute', depth: 1})
             .line({
               color: ang_cols[a],
@@ -275,7 +267,7 @@
             durationEnter: 0.5,
             stagger: [0, 0, 0, 10]
           })
-            .shader({ code: "#lerp2-shader", classes: ['lerped']})
+            .shader({ code: "#lerpz-shader", classes: ['lerped']})
             .resample({ source: loss[a], sample: 'absolute', depth: 1})
             .split({
               axis: 'x',
@@ -398,7 +390,7 @@
     //         //   axis: 'x',
     //         // })
     //         .transpose({order: 'ywzx'})
-    //         .shader({ code: "#lerp2-shader", classes: ['len-line']})
+    //         .shader({ code: "#lerpz-shader", classes: ['len-line']})
     //         .resample({ sample: 'absolute', depth: 1})
     //         .line({color: c, width: 5})
     //       .end()
