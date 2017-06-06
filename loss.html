@@ -8,6 +8,9 @@
   <script src="./matlabcolors.js"></script>
   <link rel="stylesheet" href="build/mathbox.css">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+  <style type="text/css">
+    body {background:none transparent;}
+  </style>
 </head>
 <body>
   <script type="application/glsl" id="lerp-shader">
@@ -49,6 +52,9 @@
   <script>
     var mathbox = mathBox({
       plugins: ['core', 'controls', 'cursor', 'mathbox'],
+      renderer: {
+        parameters: {alpha: true, antialias: true},
+      },
       controls: {
         // Orbit controls, i.e. Euler angles, with gimbal lock
         // klass: THREE.OrbitControls,
@@ -67,7 +73,7 @@
 
     dt = 0.1;
 
-    three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
+    three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 0.0);
 
     if (window == top) {
       window.onkeydown = function (e) {
@@ -212,7 +218,7 @@
 
     // show grid and 90 data
     slides
-      .slide({from: 0, to: 12})
+      .slide({from: 0, to: 10})
         .reveal()
           // create the axes
           .axis({ axis: 'x'})
@@ -248,7 +254,7 @@
     // plot the length data
     [90, 17, 45].forEach(function(a,i) {
       slides
-        .slide({from: i, to: 12})
+        .slide({from: i, to: 10})
           .reveal({
             stagger: [10, 0, 0, 0]
           })
@@ -263,7 +269,7 @@
 
     [90, 45, 17].map(function(a, i) {
       slides
-        .slide({from: 3, to: 12})
+        .slide({from: 3, to: 10})
           .reveal({
             delayEnter: 0.25*(2-i),
             durationEnter: 0.5,
@@ -357,7 +363,7 @@
     // })
 
     slides
-      .slide({from: 4, to: 12})
+      .slide({from: 4, to: 10})
         .axis({axis: 'z'})
         .grid({axes: 'zy'})
         .grid({axes: 'zx', origin: [0, 2.5, 0, 0]})
@@ -376,7 +382,7 @@
     // [17].forEach(function(a, i) {
     //   var c = ang_cols[a];
     //   slides
-    //     .slide({from: 4+i, to: 12})
+    //     .slide({from: 4+i, to: 10})
     //       .reveal({
     //         durationEnter: 1.0,
     //         stagger: [0, 0, 0, 1]
