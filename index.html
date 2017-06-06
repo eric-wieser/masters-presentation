@@ -4,14 +4,14 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>Machine learning for a miniature robotic unicycle</title>
 
 		<link rel="stylesheet" href="reveal.js/css/reveal.css">
-		<link rel="stylesheet" href="reveal.js/css/theme/serif.css">
+		<link rel="stylesheet" href="reveal.js/css/theme/solarized.css">
 		<link rel="stylesheet" href="build/mathbox.css">
 
 		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+		<link rel="stylesheet" href="solarized-dark.min.css">
 
 		<!-- Printing and PDF exports -->
 		<script>
@@ -50,7 +50,7 @@
 		}
 		section {
 			padding: 20px !important;
-			height: 100%;
+			min-height: 100%;
 			box-sizing: border-box;
 			display: flex;
 			flex-direction: column;
@@ -71,8 +71,28 @@
 			margin-top: -0.5em;
 		}
 
+		.reveal h4 small {
+			line-height: inherit;
+			vertical-align: middle;
+			opacity: 0.75;
+		}
+
 		.reveal h1 {
 			font-size: 2.5em;
+		}
+
+		.reveal .bytes {
+			background:#002b36;
+			color:#839496;
+			display: inline-block;
+			font-size: 0.75em;
+			padding: 0 0.1em;
+			line-height: 1em;
+		}
+
+		.bytes b {
+			font-family: monospace;
+			font-weight: normal;
 		}
 
 		.c-blue { color: rgb(0, 114, 189); }
@@ -84,6 +104,15 @@
 		.c-red { color: rgb(162, 20, 47); }
 
 		.pilco {font-variant: small-caps !important; }
+
+		.flex-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-shrink: 0;
+		}
+
+		.invisible { visibility: hidden; }
 		</style>
 	</head>
 	<body>
@@ -94,7 +123,7 @@
 		\]</div>
 		<div class="reveal">
 			<div class="slides">
-				<section data-transition="slide">
+				<section>
 					<h1>Machine learning for a miniature robotic unicycle</h1>
 					<p>Eric Wieser (<code>efw27@</code>)</p>
 					<p><small>Supervised by Prof. Carl Rasmussen (<code>cer54@</code>)</small></p>
@@ -103,10 +132,10 @@
 					</aside>
 				</section>
 
-				<section data-transition="slide">
+				<section>
 					<h2>Project goals</h2>
 					<div class="two-col">
-						<div class="fill-photo" style="flex: 1; height: 100%; background-image: url(images/front.png)"></div>
+						<div class="fill-photo" style="flex: 1; align-self: stretch; background-image: url(images/front.png)"></div>
 						<div>
 							<p class="fragment">Balance this unicycle</p>
 							<p class="fragment">Fix problems identified in previous work</p>
@@ -122,8 +151,8 @@
 					</aside>
 				</section>
 
-				<section data-transition="slide">
-					<section data-transition="slide">
+				<section>
+					<section>
 						<aside class="notes">
 							A useful technique in control theory is optimal control, which lets you quantify how good a controller is, and then pick the best one.
 
@@ -174,26 +203,104 @@
 				</section>
 
 				<section>
-					<h2>Outstanding issues</h2>
-					<p class="fragment" data-fragment-index="1">
-						Automate data transfer with the
-						hardware&nbsp;<span data-fragment-index="2" class="c-green fragment mathbox-outline-2" style="font-size: 1.5em">&#10004;</span> </p>
-					<p class="fragment" data-fragment-index="2">
-						Improve simulation model of the small
-						unicycle&nbsp;<span data-fragment-index="3" class="c-green fragment mathbox-outline-2" style="font-size: 1.5em">&#10004;</span> </p>
-					<p class="fragment" data-fragment-index="3">
-						Redesign the hardware to increase the roll
-						limit&nbsp;<strong data-fragment-index="4" class="c-yellow fragment mathbox-outline-2" style="font-size: 1.5em">?</strong>   </p>
+					<section data-transition="convex">
+						<h2>Outstanding issues</h2>
+						<p class="fragment">
+							Automate data transfer with the
+							hardware&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+						<p class="invisible">
+							Add simulation model of the small
+							unicycle&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+						<p class="invisible">
+							Redesign the hardware to increase the roll
+							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
+					</section>
+					<section data-transition="convex">
+						<h3>Data transfer</h3>
+						<div class="fragment">
+							<h4>COBS <small>Consistent Overhead Byte Stuffing</small></h4>
+							<div class="flex-row">
+								<div>
+									Messages<br />
+									<span class="bytes">
+										<b>F1</b> <b>00</b> <b>D5</b>
+									</span>, <span class="bytes">
+										<b>0F</b>
+									</span>, <span class="bytes">
+										<b>C0</b> <b>FF</b> <b>EE</b>
+									</span><br/>
+									<small></small>
+								</div>
+								&rarr;
+								<div class="fragment">
+									Stream<br />
+									<span class="bytes">
+										<b class="c-orange">02</b> <b>F1</b> <b class="c-orange">02</b> <b>D5</b> <b class="c-blue">00</b>
+										<b class="c-orange">02</b> <b>0F</b> <b class="c-blue">00</b>
+										<b class="c-orange">04</b> <b>C0</b> <b>FF</b> <b>EE</b> <b class="c-blue">00</b>
+									</span><br/>
+									<small><span class="c-orange">Count</span> and <span class="c-blue">null-terminator</span> bytes</small>
+								</div>
+							</div>
+						</div>
+						<div class="fragment">
+							<h4>Protobuf <small>Protocol buffers</small></h4>
+							<pre><code data-trim class="protobuf">
+								syntax = "proto3";
+								message DebugMessage {
+									string s = 1;
+									DebugLevel level = 2;
+								}
+								message RobotMessage {
+									oneof msg {
+										LogBundle log_bundle = 1;
+										DebugMessage debug = 2;
+										LogEntry single_log = 3;
+									}
+								}
+							</code></pre>
+						</div>
+					</section>
+					<section>
+						<h2>Outstanding issues</h2>
+						<p>
+							Automate data transfer with the
+							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+						<p class="fragment">
+							Add simulation model of the small
+							unicycle&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+						<p class="invisible">
+							Redesign the hardware to increase the roll
+							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
+					</section>
+					<section>
+						<h2>Simulation models</h2>
+						<p>Software-only tests of <span class="pilco">Pilco</span></p>
+						<p>Only have a model for the 1m unicycle</p>
+						<p>Approximations good enough</p>
+					</section>
+					<section>
+						<h2>Outstanding issues</h2>
+						<p>
+							Automate data transfer with the
+							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+						<p>
+							Add simulation model of the small
+							unicycle&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">&#10004;</span></p>
+						<p class="fragment">
+							Redesign the hardware to increase the roll
+							limit&nbsp;<strong class="fragment c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
+					</section>
 				</section>
 
-				<section data-background-iframe="loss.html"  data-transition="slide">
-					<section>
-						<h2>Simulation performance</h2>
+				<section data-background-iframe="loss.html">
+					<section data-transition="fade">
+						<h2>Effect of roll limit</h2>
 						<aside class="notes">
 						Let's take a look at the performance of the simulation
 						</aside>
 					</section>
-					<section>
+					<section data-transition="fade">
 						<aside class="notes">
 							An easy way to measure this is simply how long the robot stays upright, as a function of iteration number.
 							Here's what we get for an idealized unicycle.
@@ -203,7 +310,7 @@
 								\class{c-blue}{90&deg;}
 						\]</div>
 					</section>
-					<section>
+					<section data-transition="fade">
 						<aside class="notes">
 							And here's the unicycle with the roll limit modelled. Clearly, there's a problem.
 							Earlier work suggested we redo the frame to reduce this - optimistically, 45 degrees is achievable.
@@ -214,7 +321,7 @@
 								\class{c-yellow}{17&deg;}
 						\]</div>
 					</section>
-					<section>
+					<section data-transition="fade">
 						<aside class="notes">
 							But that doesn't really help.
 							We can't get much more from this graph as is.
@@ -226,12 +333,12 @@
 								\class{c-yellow}{17&deg;}
 						\]</div>
 					</section>
-					<section>
+					<section data-transition="fade">
 						<aside class="notes">
 							Let's add a line to represent each run of the robot...
 						</aside>
 					</section>
-					<section>
+					<section data-transition="fade">
 						<aside class="notes">
 							so that we can introduce another dimension, plotting the loss function over time
 						</aside>
@@ -242,7 +349,15 @@
 							\right]\right)
 						\]</div>
 					</section>
-					<section>
+					<section data-transition="fade">
+						<aside class="notes">
+						</aside>
+					</section>
+					<section data-transition="fade">
+						<aside class="notes">
+						</aside>
+					</section>
+					<section data-transition="fade">
 						<aside class="notes">
 						</aside>
 					</section>
@@ -254,6 +369,9 @@
 		<script src="reveal.js/js/reveal.js"></script>
 
 		<script>
+			var addProtobuf = function() {
+				hljs.getLanguage('protobuf').k.keyword += ' oneof';
+			};
 			// More info about config & dependencies:
 			// - https://github.com/hakimel/reveal.js#configuration
 			// - https://github.com/hakimel/reveal.js#dependencies
@@ -263,21 +381,23 @@
 					{ src: 'reveal.js/plugin/markdown/markdown.js' },
 					{ src: 'reveal.js/plugin/math/math.js', async: true },
 					{ src: 'reveal.js/plugin/notes/notes.js', async: true },
-					{ src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+					{ src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() {
+						addProtobuf(); hljs.initHighlightingOnLoad();
+					} }
 				],
 				math: {
 					mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
 					config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
 				},
 
-				// history: true,
+				history: true,
 				// width: "100%",
 				// height: "100%",
 				// margin: 0,
 				// minScale: 0.2,
 				// maxScale: 1.5,
 				center: false,
-				transition: 'fade',
+				transition: 'convex',
 				display: 'flex'
 			});
 
