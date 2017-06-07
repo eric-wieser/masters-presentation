@@ -5,7 +5,8 @@
   <title>Gaussian comparison</title>
   <script src="build/mathbox-bundle.js"></script>
   <script src="./matlabcolors.js"></script>
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.13.3/math.min.js"></script>
+  <script src="./gp.json"></script>
+  <!-- <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.13.3/math.min.js"></script> -->
   <link rel="stylesheet" href="build/mathbox.css">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1">
   <style type="text/css">
@@ -136,6 +137,24 @@
       return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
     }
 
+    function sample_gp() {
+      var samp = new Array(100);
+      for (var i = 0; i < 100; i++) {
+        samp[i] = N0_sample();
+      }
+
+      var m = gp_data.m;
+      var L = gp_data.L;
+      var out = new Array(100);
+      for (var i = 0; i < 100; i++) {
+        out[i] = m[i];
+        for (var j = 0; j <= i; j++) {
+          out[i] += L[j][i] * samp[j];
+        }
+      }
+      return out;
+    }
+
 
     var view = mathbox.cartesian({
       id: 'the-view',
@@ -147,7 +166,7 @@
       index: 0
     });
 
-    var slides = present.slide({steps: 12});
+    var slides = present.slide({steps: 4});
 
 
     var camera = slides
@@ -169,7 +188,8 @@
         script: [
           {props: {scale: [2, 0, 1], range: [[-3, 3], [-3,3], [0, 0.5]]}},
           {props: {scale: [2, 2, 1], range: [[-3, 3], [-3,3], [0, 0.25]]}},
-          {props: {scale: [2, 2, 0], range: [[-3, 3], [-3,3], [0, 0.25]]}}
+          {props: {scale: [2, 2, 0], range: [[-3, 3], [-3,3], [0, 0.25]]}},
+          {props: {scale: [2, 1, 0], range: [[0, 4], [-2, +2], [0, 0.25]]}}
         ]
       });
 
@@ -179,13 +199,13 @@
         script: [
           {props: {position: [0, -3, 0]}},
           {props: {position: [3, -2, 0.5]}},
-          {props: {position: [0, 0, 5], up: [0, 1, 0]}}
+          {props: {position: [0, 0, 3.5], up: [0, 1, 0]}}
         ]
       });
 
     // show grid and 90 data
     slides
-      .slide({from: 0, to: 10})
+      .slide({from: 0, to: 3})
         .reveal()
           // create the axes
           .axis({ axis: 'x'})
@@ -201,7 +221,7 @@
           .label();
 
     slides
-      .slide({from: 1, to: 10})
+      .slide({from: 1, to: 3})
         .reveal()
           .axis({ axis: 'y'})
           .grid({ axes: 'xy' })
@@ -212,8 +232,8 @@
 
 
     var pdf = view.volume({
-      width: 65,
-      height: 65,
+      width: 33,
+      height: 33,
       depth: 3,
       channels: 3,
       live: false,
@@ -246,22 +266,35 @@
       }
     }).split({axis: 'w', length: 2}).transpose({order: 'yzxw'});
 
+    var gp_samples = view.array({
+      items: 50,
+      width: 10,
+      channels: 2,
+      live: false,
+      expr: function(emit) {
+        var s = sample_gp();
+        for(var i = 0; i < 100; i+=2) {
+          emit(i/99 * 4, s[i]);
+        }
+      }
+    }).transpose({order: 'wxzy'});
+
 
     pdf     = view.resample({source: pdf, shader: dim_shader, depth: 1}).memo();
     samples = view.resample({source: samples, shader: dim_shader, depth: 1}).memo();
 
     slides
       .slide({from: 0, to: 1})
-        .slice({source: pdf, height: [32, 33]}).line({color: 'black'})
+        .slice({source: pdf, height: [16, 17]}).line({color: 'black'})
 
     slides
       .slide({from: 0, to: 3})
         .slice({source: samples, items: [1, 2]})
-        .shader({code: '#fragment-shader', axis: 1})
+        .shader({code: '#fragment-shader', axis: 1}).memo()
         .fragment({pass: 'light'})
           .point({color: colors.green, size: 40, zOrder:2})
         .end()
-        .shader({code: '#fragment-shader', axis: 1})
+        .shader({code: '#fragment-shader', axis: 1}).memo()
         .fragment({pass: 'light'})
           .transpose({source: samples, order: 'wyxz'})
           .line({color: colors.green, width: 10})
@@ -269,7 +302,7 @@
 
 
     slides
-      .slide({from: 1, to: 12})
+      .slide({from: 1, to: 3})
         .transpose({source: pdf})
         .group()
           .resample({shader: pdf_shader})
@@ -291,11 +324,54 @@
     ;
 
 
-    slides.select('axis').set({
-      color: '#000000',
-      width: 5
-    })
 
+    slides
+      .slide({from: 3, to: 4})
+        .reveal()
+          // create the axes
+          .axis({ axis: 'x'})
+          .axis({ axis: 'y'})
+
+          // axis labels
+          .array({ data: [[4, 0, 0]], channels: 3 })
+          .text({ data: ['i'] })
+          .label()
+          .array({ data: [[0, 3, 0]], channels: 3 })
+          .text({ data: ['x(i)'] })
+          .label()
+
+      .array({
+        width: 50,
+        channels: 2,
+        expr: function(emit, i) {
+          i = i * 2;
+          emit(i/99 * 4, gp_data.m[i]);
+        }
+      }).line({width: 5})
+
+      .array({
+        width: 100,
+        items: 2,
+        channels: 2,
+        expr: function(emit, i) {
+          emit(i/99 * 4, gp_data.m[i] - 2 * Math.sqrt(gp_data.K[i][i]));
+          emit(i/99 * 4, gp_data.m[i] + 2 * Math.sqrt(gp_data.K[i][i]));
+        }
+      }).transpose({order: 'xwyz'}).surface({width: 3, opacity: 0.5})
+
+      .transpose({source: gp_samples})
+      .shader({code: '#fragment-shader', axis: 1}).memo()
+      .fragment({pass: 'light'})
+        .line({
+          width: 10,
+          color: colors.green
+        })
+      .end()
+
+      slides.select('axis').set({
+        color: '#000000',
+        width: 5
+      })
 
 
   </script>

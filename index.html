@@ -184,7 +184,8 @@
 
 							Problem is, this needs a system model - and if the model is wrong, then the controller is unlikely to be optimal or stable.
 
-							TODO
+							Pilco use a gaussian process to model dynamics, which captures both model uncertainty and process noise.
+							This model is trained using data collected on the robot.
 						</aside>
 						<h2><span class="pilco">Pilco</span><small>Probabilistic Inference for Learning Control</small></h2>
 						<div class="fragment" data-fragment-index="1">
@@ -226,10 +227,26 @@
 						</div>
 					</section>
 					<section data-background-iframe="gauss.html">
+						<aside class="notes">
+							Let's recap Gaussian processes quickly.
+
+							A Gaussian, or normal distribution, is a distribution over scalars.
+							We can extend this to a distribution over vectors with a multivariate gaussian.
+							Taking this further, a gaussian process is a distribution over functions.
+
+							For pilco, the functions in question are the one-step update dynamics.
+						</aside>
 						<div class="abs-tc mathbox-outline-2"><h3>Gaussian processes</h3></div>
+						<div class="abs-bc fragment current-visible mathbox-outline-2">Scalar: \[
+							\class{c-green}{x} \sim \mathcal{N}(\mu, \sigma^2)
+						\]</div>
+						<div class="abs-bc fragment current-visible mathbox-outline-2">Vector: \[
+							\class{c-green}{\begin{bmatrix}x_0 \\ x_1\end{bmatrix}} \sim \mathcal{N}(\mu, \Sigma)
+						\]</div>
 						<span class="fragment"></span>
-						<span class="fragment"></span>
-						<span class="fragment"></span>
+						<div class="abs-bc fragment current-visible mathbox-outline-2">Function: \[
+							\class{c-green}{x(\cdot)}\sim \mathrm{GP}(m(\cdot), K(\cdot,\cdot))
+						\]</div>
 					</section>
 				</section>
 
