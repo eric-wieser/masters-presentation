@@ -68,6 +68,20 @@
     }
   }
   </script>
+  <script type="application/glsl" id="cycley-shader">
+  uniform int ylen;
+  uniform int yoffset;
+
+  // Original resampled source
+  vec4 getOriginalSample(vec4 xyzw);
+
+  // Resample shader
+  vec4 getSample(vec4 xyzw) {
+    float i = mod(xyzw.y - float(yoffset), float(ylen));
+    vec4 xyzw2 = vec4(xyzw.x, i,  xyzw.z, xyzw.w);
+    return getOriginalSample(xyzw2);
+  }
+  </script>
 
   <script>
     var mathbox = mathBox({
@@ -122,6 +136,10 @@
           present.set('index', e.value);
         }
       });
+    }
+
+    function mod(a, b) {
+      return ((a % b) + b) % b
     }
 
     // math stuff
@@ -268,7 +286,7 @@
 
     var gp_samples = view.array({
       items: 50,
-      width: 10,
+      width: 100,
       channels: 2,
       live: false,
       expr: function(emit) {
@@ -360,6 +378,11 @@
       }).transpose({order: 'xwyz'}).surface({width: 3, opacity: 0.5})
 
       .transpose({source: gp_samples})
+      .shader({code: '#cycley-shader', ylen: 100}, {
+        yoffset: function(t) { return Math.floor(t / 0.1); }
+      })
+      .resample()
+      .slice({height: [0, 10]})
       .shader({code: '#fragment-shader', axis: 1}).memo()
       .fragment({pass: 'light'})
         .line({
