@@ -213,7 +213,7 @@
 
     // show grid and 90 data
     slides
-      .slide({from: 0, to: 10})
+      .slide({from: 0, to: 11})
         .reveal()
           // create the axes
           .axis({ axis: 'x'})
@@ -249,7 +249,7 @@
     // plot the length data
     [90, 17, 45].forEach(function(a,i) {
       slides
-        .slide({from: i, to: 10})
+        .slide({from: i, to: 11})
           .reveal({
             stagger: [10, 0, 0, 0]
           })
@@ -264,7 +264,7 @@
 
     [90, 45, 17].map(function(a, i) {
       slides
-        .slide({from: 3, to: 10})
+        .slide({from: 3, to: 11})
           .reveal({
             delayEnter: 0.25*(2-i),
             durationEnter: 0.5,
@@ -385,7 +385,7 @@
     // })
 
     slides
-      .slide({from: 4, to: 10})
+      .slide({from: 4, to: 11})
         .axis({axis: 'z'})
         .grid({axes: 'zy'})
         .grid({axes: 'zx', origin: [0, 2.5, 0, 0]})

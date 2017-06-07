@@ -165,7 +165,8 @@
 						<div>
 							<p class="fragment">Balance this unicycle</p>
 							<p class="fragment">Fix problems identified in previous work</p>
-							<p class="fragment">Improve the tools to make similar projects easier in future</p>
+							<p class="fragment" style="opacity: 0.75">Review source code and fix bugs found</p>
+							<p class="fragment" style="opacity: 0.75">Improve the tools to make similar projects easier in future</p>
 						</div>
 					</div>
 					<aside class="notes">
@@ -173,8 +174,38 @@
 
 						This isn't the first time that's been tried - previous work showed some success, but raised a lot of issues.
 
-						The final goal was to try and improve the tools to expose issues more clearly.
+						The last two goals were to review the source code, and to try and improve the tools to expose issues more clearly - but I won't discuss these further in this presentation
 					</aside>
+				</section>
+				<section>
+					<h2>Outline</h2>
+					<ol>
+						<li>System overview</li>
+						<li>Summary of the method, <span class="pilco">Pilco</span></li>
+						<li>Errors in earlier work</li>
+						<li>Outstanding problem outlined in earlier work</li>
+					</ol>
+				</section>
+
+				<section>
+					<h2>System overview</h2>
+					<div class="fragment">
+						<h3>Robot</h3>
+						<ul>
+							<li>Small</li>
+							<li>Arduino-like controller</li>
+							<li>C++</li>
+							<li>Performs no learning</li>
+						</ul>
+					</div>
+					<div class="fragment">
+						<h3>PC</h3>
+						<ul>
+							<li>Takes data from the robot</li>
+							<li>Applies methods from the <span class="pilco">Pilco</span> toolbox (Matlab)</li>
+							<li>Sends a new controler to the robot</li>
+						</ul>
+					</div>
 				</section>
 
 				<section>
@@ -246,6 +277,76 @@
 						<span class="fragment"></span>
 						<div class="abs-bc fragment mathbox-outline-2">
 							Function: $\class{c-green}{x(\cdot)}\sim \mathrm{GP}(\class{c-blue}{m(\cdot)}, K(\cdot,\cdot))$
+						</div>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Problems in inherited work</h2>
+					</section>
+					<section class="smaller">
+						<h2>Software</h2>
+						<ul>
+							<li>Incorrect use of Euler angles</li>
+							<li>Incorrect integration of gyro <span class="fragment">&mdash;
+								$\bm{q}\tind{t_2} = \exp \left(\tfrac{1}{2} \Delta t \bm{\omega}\right) \bm{q}\tind{t_1}$</span></li>
+							<li>Integer overflow in encoder readings
+								<span class="fragment">
+									<pre style="font-size: 0.33em"><code class="c++" data-trim>
+										int16_t curr_enc, last_enc;
+										int32_t total = 0;
+										total += curr_enc - last_enc;                             // wrong + Undefined behaviour (UB)
+										total += static_cast&lt;int16_t&gt;(curr_enc - last_enc);       // UB!
+										total += static_cast&lt;int16_t&gt;(
+										    static_cast&lt;uint16_t&gt;(curr_enc) -
+										    static_cast&lt;uint16_t&gt;(last_enc)
+										);                                                        // OK!
+									</code></pre>
+									<q style="font-size: 0.5em; display: block; text-align: center">
+										&ldquo;When the compiler encounters [UB] it is legal for it to make demons fly out of your nose&rdquo;</q>
+								</span>
+							</li>
+							<li>Use of contraint-violating trajectories to learn dynamics</li>
+							<li>
+								Loss function
+								<ul>
+									<li>Algebraic errors</li>
+									<li>Not scaled to small robot</li>
+								</ul>
+							</li>
+							<li>…</li>
+						</ul>
+					</section>
+					<section class="smaller">
+						<h2>Electrical</h2>
+						<div class="image-row">
+							<div>
+								<img src="images/short-motor.jpg" />
+								Exposed metal
+							</div>
+							&nbsp;+&nbsp;
+							<div>
+								<img src="images/standoffs.jpg" />
+								Loose fastening
+							</div>
+							&nbsp;=&nbsp;
+							<div class="fragment" data-fragment-index="1">
+								<img src="images/wires.jpg" />
+								Molten wires
+							</div>
+							&nbsp;<span class="fragment" data-fragment-index="1">+</span>&nbsp;
+							<div class="fragment" data-fragment-index="1">
+								<img src="images/finger.jpg" />
+								Injury
+							</div>
+						</div>
+						<div class="fragment">
+							<h3>Lessons</h3>
+							<ol>
+								<li>Always have a fuse or power switch</li>
+								<li>Assume everything is a conductor unless designed not to be</li>
+							</ol>
 						</div>
 					</section>
 				</section>
@@ -339,7 +440,6 @@
 								</small>
 								Human visual &mdash; 330ms</div>
 								<div class="fragment">Human audio &mdash; 280ms</div>
-								
 								<div class="fragment">Arduino switch release &mdash; <i>really fast!</i></div>
 							</div>
 							<div class="fragment fill-photo" style="align-self: stretch; flex: 0.5; background-image: url(images/electronic-back.png);"> </div>
@@ -524,42 +624,47 @@
 						</p>
 						<em class="c-red fragment">✘ Improvement is small after fixing loss</em>
 					</section>
-
-				</section>
-
-				<section class="smaller">
-					<h2>New hardware issues</h2>
-					<h3>Electrical short</h3>
-					<div class="image-row">
-						<div>
-							<img src="images/short-motor.jpg" />
-							Exposed metal
-						</div>
-						&nbsp;+&nbsp;
-						<div>
-							<img src="images/standoffs.jpg" />
-							Loose fastening
-						</div>
-						&nbsp;=&nbsp;
-						<div>
-							<img src="images/wires.jpg" />
-							Molten wires
-						</div>
-						&nbsp;+&nbsp;
-						<div>
-							<img src="images/finger.jpg" />
-							Injury
-						</div>
-					</div>
-					<h4>Lessons</h4>
-					<ol>
-						<li>Always have a fuse or power switch</li>
-						<li>Assume everything is a conductor unless designed not to be</li>
-					</ol>
 				</section>
 
 				<section>
 					<h2>Hardware results</h2>
+					<div class="fill-photo fragment" style="background-image: url(images/hardware-results.png); flex: 1"></div>
+				</section>
+
+				<section>
+					<h2>Summary</h2>
+					<ul>
+						<li>Design and implement a communication protocol</li>
+					</ul>
+				</section>
+
+				<section>
+					<section>
+						<h2>Future work</h2>
+						<ul>
+							<li>Investigate why learning failed experimentally</li>
+							<li>Use Automatic Differentation within <span class="pilco">Pilco</span>
+								<div style="text-align: right">
+									<small>
+										Deriving gradients manually <q>"restricts the [ML] community to only using computational structures we are capable of manually deriving gradients for"</q>
+									</small>
+									<div style="font-size: 0.25em">
+									Justin Domke. Automatic Differentiation: The most criminally underused tool in the po-
+	tential machine learning toolbox? 2009-02-17
+									</div>
+								</div>
+							</li>
+							<li>Apply a quadratic controller</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Quadratic controller</h3>
+						<div class="fill-photo" style="background-image: url(images/quadratic.png); flex: 1"></div>
+						<p style="font-size: 80%">
+							Areas are shaded where <span class="c-green">$\tau > 0$</span> and <span class="c-red">$\tau < 0$</span>.
+							$\tau_w > 0$ corresponds to a force driving the robot forwards, and $\tau_t > 0$ corresponds to a moment rotating the robot clockwise.
+						</p>
+					</section>
 				</section>
 
 				<section>
