@@ -165,16 +165,16 @@
 						<div>
 							<p class="fragment">Balance this unicycle</p>
 							<p class="fragment">Fix problems identified in previous work</p>
-							<p class="fragment" style="opacity: 0.75">Review source code and fix bugs found</p>
+							<p class="fragment">Review source code and fix bugs found</p>
 							<p class="fragment" style="opacity: 0.75">Improve the tools to make similar projects easier in future</p>
 						</div>
 					</div>
 					<aside class="notes">
 						The main goal of course, is to balance this unicycle.
 
-						This isn't the first time that's been tried - previous work showed some success, but raised a lot of issues.
+						This isn't the first time that's been tried - previous work showed some success, but raised a lot of issues, which this project focusses on. There were a bunch of mistakes in their work too.
 
-						The last two goals were to review the source code, and to try and improve the tools to expose issues more clearly - but I won't discuss these further in this presentation
+						The last goal was to try and improve the tools to expose issues more clearly - but I won't discuss these further in this presentation
 					</aside>
 				</section>
 				<section>
@@ -183,7 +183,7 @@
 						<li>System overview</li>
 						<li>Summary of the method, <span class="pilco">Pilco</span></li>
 						<li>Errors in earlier work</li>
-						<li>Outstanding problems outlined in earlier work</li>
+						<li>Suggested improvements from earlier work</li>
 						<li>Results on the hardware</li>
 						<li>Future work and conclusions</li>
 					</ol>
@@ -291,7 +291,7 @@
 						<h2>Software</h2>
 						<ul>
 							<li>Incorrect use of Euler angles</li>
-							<li>Incorrect integration of gyro <span class="fragment">&mdash;
+							<li>Incorrect integration of gyro <span class="fragment" style="font-size: 0.5em">&mdash; should be
 								$\bm{q}\tind{t_2} = \exp \left(\tfrac{1}{2} \Delta t \bm{\omega}\right) \bm{q}\tind{t_1}$</span></li>
 							<li>Integer overflow in encoder readings
 								<span class="fragment">
@@ -355,7 +355,7 @@
 
 				<section>
 					<section>
-						<h2>Outstanding issues</h2>
+						<h2>Suggested Improvements</h2>
 						<p class="fragment">
 							Automate data transfer with the
 							hardware&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
@@ -416,7 +416,7 @@
 						</div>
 					</section>
 					<section>
-						<h2>Outstanding issues</h2>
+						<h2>Suggested Improvements</h2>
 						<p>
 							Automate data transfer with the
 							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
@@ -456,7 +456,7 @@
 						</div>
 					</section>
 					<section>
-						<h2>Outstanding issues</h2>
+						<h2>Suggested Improvements</h2>
 						<p>
 							Automate data transfer with the
 							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
@@ -477,7 +477,7 @@
 						<p>Approximations good enough</p>
 					</section>
 					<section>
-						<h2>Outstanding issues</h2>
+						<h2>Suggested Improvements</h2>
 						<p>
 							Automate data transfer with the
 							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
@@ -497,6 +497,7 @@
 				<section data-background-iframe="loss.html">
 					<section>
 						<h3>Effect of roll limit</h3>
+						<div class="fill-photo" style="background-image: url(images/rolllimit.png); flex: 1"></div>
 						<aside class="notes">
 						Let's take a look at the performance of the simulation
 						</aside>
@@ -619,7 +620,7 @@
 						</div>
 					</section>
 					<section data-transition="fade">
-						<h2>Outstanding issues</h2>
+						<h2>Suggested Improvements</h2>
 						<p>
 							Redesign the hardware to increase the roll
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong>
