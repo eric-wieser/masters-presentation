@@ -339,6 +339,27 @@
         .transpose({order: 'yx'})
         .line({color: 'black'})
 
+
+    slides
+      .slide({from: 2, to: 3})
+        .array({
+          width: 32,
+          channels: 2,
+          live: false,
+          items: 2,
+          expr: function(emit, i) {
+            var theta = (i / 31 - 0.5) * Math.PI;
+            emit(2*Math.sin(theta), 2*Math.cos(theta));
+            emit(2*Math.sin(theta), -2*Math.cos(theta));
+          }
+        })
+        .transpose({order: 'wxyz'})
+        .reveal({
+          delayEnter: 0.25
+        })
+          .surface({
+            opacity: 0.5
+          });
     ;
 
 
@@ -353,19 +374,18 @@
           // axis labels
           .array({ data: [[4, 0, 0]], channels: 3 })
           .text({ data: ['i'] })
-          .label()
-          .array({ data: [[0, 3, 0]], channels: 3 })
+          .label({offset: [20, 0]})
+          .array({ data: [[0, 2, 0]], channels: 3 })
           .text({ data: ['x(i)'] })
-          .label()
+          .label({offset: [0, 20]})
 
       .array({
-        width: 50,
+        width: 100,
         channels: 2,
         expr: function(emit, i) {
-          i = i * 2;
           emit(i/99 * 4, gp_data.m[i]);
         }
-      }).line({width: 5})
+      }).line({width: 5, color: colors.blue})
 
       .array({
         width: 100,
