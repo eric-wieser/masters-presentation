@@ -139,6 +139,13 @@
 		.reveal sup {
 			font-size: 0.75em;
 		}
+
+		pre.inline {
+			width: 60%;
+			display: inline-block;
+			vertical-align: middle;
+			margin: 0;
+		}
 		</style>
 	</head>
 	<body>
@@ -198,6 +205,7 @@
 						<h3>Robot</h3>
 						<ul>
 							<li>Small</li>
+							<li>Two actuators - drive wheel, horizontal flywheel</li>
 							<li>Arduino-like controller</li>
 							<li>C++</li>
 							<li>Performs no learning</li>
@@ -279,7 +287,7 @@
 							We can extend this to a distribution over vectors with a multivariate gaussian.
 							Taking this further, a gaussian process is a distribution over functions.
 
-							For pilco, the functions in question are the one-step update dynamics.
+							As a reminder, for pilco, the functions in question are the one-step update dynamics.
 						</aside>
 						<div class="abs-tc mathbox-outline-2"><h3>Gaussian processes</h3></div>
 						<div class="abs-bc fragment current-visible mathbox-outline-2">
@@ -289,8 +297,11 @@
 							Vector: $\class{c-green}{\begin{bmatrix}x_0 \\ x_1\end{bmatrix}} \sim \mathcal{N}(\mu, \Sigma)$
 						</div>
 						<span class="fragment"></span>
-						<div class="abs-bc fragment mathbox-outline-2">
+						<div class="abs-bc fragment current-visible mathbox-outline-2">
 							Function: $\class{c-green}{x(\cdot)}\sim \mathrm{GP}(\class{c-blue}{m(\cdot)}, K(\cdot,\cdot))$
+						</div>
+						<div class="abs-bc fragment mathbox-outline-2">
+							Function: $\class{c-green}{\bm{x}\tind{i + 1} - \bm{x}\tind{i}}\sim \mathrm{GP}(\class{c-blue}{m(\cdot)}, K(\cdot,\cdot))$
 						</div>
 					</section>
 				</section>
@@ -300,40 +311,54 @@
 						<h2>Problems in inherited work</h2>
 					</section>
 					<section class="smaller">
-						<h2>Software</h2>
+						<aside class="notes">
+							There were numerous small mathematical and programmatic errors in the existing work, which
+							were enough to draw into question the quality of its results. Some of these were found
+							through data visualization, while others were found from analysis by first principles.
+
+							To summarize, there were issues around state computation, both mathematical and progammatic,
+							and some more abstract issues with the constraint and loss functions.
+						</aside>
+						<h2>Software Problems</h2>
 						<ul>
-							<li>Incorrect use of Euler angles</li>
-							<li>Incorrect integration of gyro <span class="fragment" style="font-size: 0.5em">&mdash; should be
+							<li class="fragment" data-fragment-index="1">Incorrect use of Euler angles</li>
+							<li class="fragment" data-fragment-index="1">Incorrect integration of gyro <span style="font-size: 0.5em">&mdash; should be
 								$\bm{q}\tind{t_2} = \exp \left(\tfrac{1}{2} \Delta t \bm{\omega}\right) \bm{q}\tind{t_1}$</span></li>
-							<li>Integer overflow in encoder readings
-								<span class="fragment">
-									<pre style="font-size: 0.33em"><code class="c++" data-trim>
-										int16_t curr_enc, last_enc;
-										int32_t total = 0;
-										total += curr_enc - last_enc;                             // wrong + Undefined behaviour (UB)
-										total += static_cast&lt;int16_t&gt;(curr_enc - last_enc);       // UB!
-										total += static_cast&lt;int16_t&gt;(
-										    static_cast&lt;uint16_t&gt;(curr_enc) -
-										    static_cast&lt;uint16_t&gt;(last_enc)
-										);                                                        // OK!
-									</code></pre>
+							<li class="fragment" data-fragment-index="1">Integer overflow in encoder readings
+								<span>
+									<p>
+										<pre style="font-size: 0.5em" class="inline"><code class="c++" data-trim>
+											int16_t curr_enc, last_enc;
+											int32_t total = 0;
+										</code></pre> <em style="font-size: 0.75em; color: gray">setup</em><br />
+										<pre style="font-size: 0.5em" class="inline"><code class="c++" data-trim>
+											total += curr_enc - last_enc;
+										</code></pre> <em class="c-red" style="font-size: 0.75em">✘ Wrong + undefined behaviour</em><br />
+										<pre style="font-size: 0.5em" class="inline"><code class="c++" data-trim>
+											total += static_cast&lt;int16_t&gt;(curr_enc - last_enc);
+										</code></pre> <em class="c-red" style="font-size: 0.75em">✘ Undefined behavior</em><br />
+										<pre style="font-size: 0.5em" class="inline"><code class="c++" data-trim>
+											total += static_cast&lt;int16_t&gt;(
+												static_cast&lt;uint16_t&gt;(curr_enc) -
+												static_cast&lt;uint16_t&gt;(last_enc)
+											);
+										</code></pre> <em class="c-green" style="font-size: 0.75em">✔</em>
+									</p>
 									<q style="font-size: 0.5em; display: block; text-align: center">
-										&ldquo;When the compiler encounters [UB] it is legal for it to make demons fly out of your nose&rdquo;</q>
+										&ldquo;When the compiler encounters [undefined behaviour] it is legal for it to make demons fly out of your nose&rdquo;<sup><a href="http://groups.google.com/groups?hl=en&selm=10195%40ksr.com">[1]</a></q>
 								</span>
 							</li>
-							<li>Use of contraint-violating trajectories to learn dynamics</li>
-							<li>
-								Loss function
-								<ul>
-									<li>Algebraic errors</li>
-									<li>Not scaled to small robot</li>
-								</ul>
-							</li>
-							<li>…</li>
+							<li class="fragment" data-fragment-index="1">Algebraic errors in the loss function</li>
+							<li class="fragment" data-fragment-index="2">Use of contraint-violating trajectories to learn dynamics</li>
+							<li class="fragment" data-fragment-index="2">Loss function not scaled to small robot</li>
 						</ul>
 					</section>
 					<section class="smaller">
-						<h2>Electrical</h2>
+						<aside class="notes">
+							There was also one electrical problem, in which uninsulated connectors led to a short.
+
+							I'm including this slide as a reminder to always put a switch and fuse on your power supply.
+						<h2>Electrical Problems</h2>
 						<div class="image-row">
 							<div>
 								<img src="images/short-motor.jpg" />
@@ -367,6 +392,11 @@
 
 				<section>
 					<section>
+						<aside class="notes">
+							Let's move on to the improvements suggested by the previous work.
+
+							The first was to remove the manual process of putting controllers into the robot.
+						</aside>
 						<h2>Suggested Improvements</h2>
 						<p class="fragment">
 							Automate data transfer with the
@@ -382,9 +412,37 @@
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
 					</section>
 					<section>
+						<aside class="notes">
+							The missing piece here was a serial communication protocol.
+
+							For this you need two parts - an application layer, to represent structured messages as
+							bytestrings - for which I used protobuf;
+							and a framing layer to delineate disjoint bytestrings in a continous stream, for which I used
+							COBS.
+
+							With this in place, it was easy to define messages to change controller policy and extract
+							state logs.
+						</aside>
 						<h3>Data transfer</h3>
 						<div class="fragment">
-							<h4>COBS <small>Consistent Overhead Byte Stuffing</small></h4>
+							<h4>Application layer <small>Protocol buffers</small></h4>
+							<pre><code data-trim class="protobuf">
+								syntax = "proto3";
+								message DebugMessage {
+									string s = 1;
+									DebugLevel level = 2;
+								}
+								message RobotMessage {
+									oneof msg {
+										LogBundle log_bundle = 1;
+										DebugMessage debug = 2;
+										LogEntry single_log = 3;
+									}
+								}
+							</code></pre>
+						</div>
+						<div class="fragment">
+							<h4>Framing layer <small>COBS (Consistent Overhead Byte Stuffing)</small></h4>
 							<div class="flex-row">
 								<div>
 									Messages<br />
@@ -409,25 +467,11 @@
 								</div>
 							</div>
 						</div>
-						<div class="fragment">
-							<h4>Protobuf <small>Protocol buffers</small></h4>
-							<pre><code data-trim class="protobuf">
-								syntax = "proto3";
-								message DebugMessage {
-									string s = 1;
-									DebugLevel level = 2;
-								}
-								message RobotMessage {
-									oneof msg {
-										LogBundle log_bundle = 1;
-										DebugMessage debug = 2;
-										LogEntry single_log = 3;
-									}
-								}
-							</code></pre>
-						</div>
 					</section>
 					<section>
+						<aside class="notes">
+							Next we move onto improving the release procedure.
+						</aside>
 						<h2>Suggested Improvements</h2>
 						<p>
 							Automate data transfer with the
@@ -443,6 +487,15 @@
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
 					</section>
 					<section>
+						<aside class="notes">
+							For each controller, the robot must be released from vertical just before the robot starts
+							controlling itself. This was originally done with an LED.
+
+							This is done by hand, so reaction time comes into play.
+
+							You can see we can get a small improvement by switching to an audio queue - but we can do even
+							better if we reverse the roles, and have the robot respond to the human instead of the other way around.
+						</aside>
 						<h3>Release procedure</h3>
 						<h4>Reaction times</h4>
 						<div class="two-col">
@@ -468,6 +521,9 @@
 						</div>
 					</section>
 					<section>
+						<aside class="notes">
+							Next we move onto adding an accurate simulation model
+						</aside>
 						<h2>Suggested Improvements</h2>
 						<p>
 							Automate data transfer with the
@@ -483,12 +539,26 @@
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
 					</section>
 					<section>
+						<aside>
+							Pilco contains simulations primarily for testing reasons - its much faster to try learning
+							a controller on a system that doesn't require physical intervention to reset.
+
+							A simulated model of the 1m unicycle already existed - as part of this project, parameters
+							for the smaller model were roughly estimated based on dimensions and material properties -
+							exact matches of moments of inertia to the hardware were not important.
+						</aside>
 						<h2>Simulation models</h2>
 						<p>Software-only tests of <span class="pilco">Pilco</span></p>
 						<p>Only have a model for the 1m unicycle</p>
-						<p>Approximations good enough</p>
+						<p>Approximations of physical parameters good enough</p>
 					</section>
 					<section>
+						<aside class="notes">
+							The last improvement suggested was the most involved one, suggesting that the robot needs
+							to be able to fall over further in roll to learn.
+
+							Let's look at this one in more detail.
+						</aside>
 						<h2>Suggested Improvements</h2>
 						<p>
 							Automate data transfer with the
@@ -511,7 +581,10 @@
 						<h3>Effect of roll limit</h3>
 						<div class="fill-photo" style="background-image: url(images/rolllimit.png); flex: 1"></div>
 						<aside class="notes">
-						Let's take a look at the performance of the simulation
+						Roll limit is referring to how far the robot can fall over in roll before its wheel leaves the ground,
+						and recovery becomes impossible.
+
+						Let's take a look at the performance of the simulation under different roll limits.
 						</aside>
 					</section>
 					<section data-transition="fade">
@@ -568,7 +641,11 @@
 						<aside class="notes">
 							so that we can introduce another dimension, plotting the loss function over time.
 
-							Here, it's clear that oru 
+							Again, the ends of the line indicate where the robot fell over
+
+							It's already noticeable that the yellow and red lines end at far lower a loss function.
+
+							Eliminating the iterations axis, this is even more pronounced.
 						</aside>
 						<div class="abs-tc mathbox-outline-2">\[
 							\text{Loss}(\mathbf{x}) = 1 - \exp\left(-\tfrac{1}{2}\left[
@@ -579,6 +656,10 @@
 					</section>
 					<section data-transition="fade">
 						<aside class="notes">
+
+							Falling over when the loss function is low makes the controller think it is doing quite
+							well - we need our loss function to be close to 1 once a fall has occured in order to
+							effectively teach the controller not to fall.
 						</aside>
 						<div class="abs-tc mathbox-outline-2">\[
 							\text{Loss}(\mathbf{x}) = 1 - \exp\left(-\tfrac{1}{2}\left[
@@ -589,6 +670,11 @@
 					</section>
 					<section data-transition="fade">
 						<aside class="notes">
+							Pilco also tracks the expected distribution of loss functions at a given time, here
+							shown for the 45th iteration, which shows us that not only that the loss indicates that
+							the robot did not fall over, but that the chance of it doing so is very small.
+
+							Let's fix the loss function to penalize falling over in roll.
 						</aside>
 						<div class="abs-tc mathbox-outline-2">\[
 							\text{Loss}(\mathbf{x}) = 1 - \exp\left(-\tfrac{1}{2}\left[
@@ -596,9 +682,15 @@
 								\tfrac{\phi^2}{(4\pi)^2}
 							\right]\right)
 						\]</div>
+						<div class="abs-bc mathbox-outline-2">
+							Before, showing distribution of predictions
+						</div>
 					</section>
 					<section data-transition="fade">
 						<aside class="notes">
+							As soon as we do this, we see that all of our runs last much longer.
+
+							I'll show this from the original view for good measure, so we can compare before and after one more time.
 						</aside>
 						<div class="abs-tc mathbox-outline-2">\[
 							\text{Loss}(\mathbf{x}) = 1 - \exp\left(-\tfrac{1}{2}\left[
@@ -606,6 +698,9 @@
 								\tfrac{\phi^2}{(4\pi)^2} + \class{c-purple}{\tfrac{\theta^2}{\theta_\text{max}^2}}
 							\right]\right)
 						\]</div>
+						<div class="abs-bc mathbox-outline-2">
+							After, showing distribution of predictions
+						</div>
 					</section>
 					<section data-transition="fade">
 						<aside class="notes">
@@ -626,6 +721,8 @@
 					</section>
 					<section data-transition="fade">
 						<aside class="notes">
+							This investigation showed that with a corrected loss, a simulated unicycle with a 17 degree
+							roll limit is able to perform very similarly to one with a 45-degree limit
 						</aside>
 						<div class="abs-tc mathbox-outline-2">
 							With <span class="c-purple">roll loss term</span>
@@ -642,6 +739,19 @@
 				</section>
 
 				<section>
+					<aside class="notes">
+						This slide is unfortunate for two reasons.
+
+						The graph is much less exciting, but also you can see that almost no lerarning was observed on
+						the real physical system.
+
+						These results were in fact worse than the previous iteration of the project. It's possible that
+						the prior work exploited a mistake that was fixed in this iteration, or that the USB cable that
+						was previously attached to the robot made its dynamics significantly more viable.
+
+						Controller latency present in hardware but not simulation may also be to blame for the difference.
+
+						There was little time to investigate these disappointing results further.
 					<h2>Hardware results</h2>
 					<div class="fill-photo fragment" style="background-image: url(images/hardware-results.png); flex: 1"></div>
 				</section>
