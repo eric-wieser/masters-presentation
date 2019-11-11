@@ -187,6 +187,9 @@
 						<li>Results on the hardware</li>
 						<li>Future work and conclusions</li>
 					</ol>
+					<aside class="notes">
+						Here's what I will cover in this presentation.
+					</aside>
 				</section>
 
 				<section>
@@ -208,6 +211,15 @@
 							<li>Sends a new controller to the robot</li>
 						</ul>
 					</div>
+					<aside class="notes">
+						The system consists of two main parts.
+
+						A "dumb" robot, which you saw in a previous slide, which reads sensors and operates motors,
+						enacting a particular controller...
+
+						... and clever PC software, which learns a controller offline.
+						Let's go into detail on the approach used for this learning.
+					</aside>
 				</section>
 
 				<section>
@@ -224,7 +236,7 @@
 						<div class="fragment" data-fragment-index="1">
 							<p>
 								Optimal control finds a <span class="c-blue">policy</span> for a <span class="c-green">system</span>
-								minimizing a <span class="c-purple">cost function</span> over a horizon
+								minimizing a <span class="c-purple">cost function</span> over a <span class="c-orange">horizon</span>
 							</p>
 							<small>\[
 								\begin{alignat}{2}
@@ -232,7 +244,7 @@
 									\pi^*(\bm{x}) &= \argmin_{\pi(\bm{x})}
 										J(\bm{x}\tind\cdot, \bm{u}\tind\cdot)
 										\quad \text{where} \quad
-										J(\bm{x}\tind\cdot, \bm{u}\tind\cdot) = \sum_{i=0}^{i=N}
+										J(\bm{x}\tind\cdot, \bm{u}\tind\cdot) = \class{c-orange}{\sum_{i=0}^{i=N}}
 										\class{c-purple}{c(\bm{x}\tind{i}, \bm{u}\tind{i})}\quad \\ \label{eq:optimal}
 								\text{st.}&& \quad
 									\class{c-green}{\bm{x}\tind{i+1}} &\class{c-green}{= f(\bm{x}\tind{i}, \bm{u}\tind{i})} \\ \nonumber
