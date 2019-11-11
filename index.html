@@ -156,16 +156,16 @@
 		\]</div>
 		<div class="reveal">
 			<div class="slides">
-				<section>
+				<section data-timing="5">
 					<h1>Machine learning for a miniature robotic unicycle</h1>
 					<p>Eric Wieser (<code>efw27@</code>)</p>
 					<p><small>MEng. Project 2016-2017<br />Supervised by Prof. Carl Rasmussen (<code>cer54@</code>)</small></p>
 					<aside class="notes">
-						Hi, I’m Eric, and my project is on using Machine Learning to find a controller for a miniature unicycle
+						Hi, I’m Eric, and this a presentation on my masters project, which was using Machine Learning to find a controller for a miniature unicycle
 					</aside>
 				</section>
 
-				<section>
+				<section data-timing="18">
 					<h2>Project goals</h2>
 					<div class="two-col">
 						<div class="fill-photo" style="align-self: stretch; background-image: url(images/front.png)"></div>
@@ -184,7 +184,7 @@
 						The last goal was to try and improve the tools to expose issues more clearly - but I won't discuss these further in this presentation
 					</aside>
 				</section>
-				<section>
+				<section data-timing="15">
 					<h2>Outline</h2>
 					<ol>
 						<li>System overview</li>
@@ -199,7 +199,7 @@
 					</aside>
 				</section>
 
-				<section>
+				<section data-timing="15">
 					<h2>System overview</h2>
 					<div class="fragment">
 						<h3>Robot</h3>
@@ -231,7 +231,7 @@
 				</section>
 
 				<section>
-					<section class="smaller">
+					<section class="smaller" data-timing="26">
 						<aside class="notes">
 							A useful technique in control theory is optimal control, which lets you quantify how good a controller is, and then pick the best one.
 
@@ -279,7 +279,7 @@
 							Advantages: data-efficient, immune to modelling mistakes
 						</div>
 					</section>
-					<section data-background-iframe="gauss.html">
+					<section data-background-iframe="gauss.html" data-timing="20">
 						<aside class="notes">
 							Let's recap Gaussian processes quickly.
 
@@ -307,10 +307,10 @@
 				</section>
 
 				<section>
-					<section>
+					<section data-timing="5">
 						<h2>Problems in inherited work</h2>
 					</section>
-					<section class="smaller">
+					<section class="smaller" data-timing="20">
 						<aside class="notes">
 							There were numerous small mathematical and programmatic errors in the existing work, which
 							were enough to draw into question the quality of its results. Some of these were found
@@ -353,7 +353,7 @@
 							<li class="fragment" data-fragment-index="2">Loss function not scaled to small robot</li>
 						</ul>
 					</section>
-					<section class="smaller">
+					<section class="smaller" data-timing="20">
 						<aside class="notes">
 							There was also one electrical problem, in which uninsulated connectors led to a short.
 
@@ -392,18 +392,19 @@
 				</section>
 
 				<section>
-					<section>
+					<section data-timing="8">
 						<aside class="notes">
 							Let's move on to the improvements suggested by the previous work.
 
-							The first was to remove the manual process of putting controllers into the robot.
+							The first was to remove the manual process of putting controllers into the robot,
+							and allowing the USB cable tether to be eliminated.
 						</aside>
 						<h2>Suggested Improvements</h2>
 						<p class="fragment">
 							Automate data transfer with the
 							hardware&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
 						<p class="invisible">
-							Improve release procedure&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
+							Improve physical release procedure&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
 						</p>
 						<p class="invisible">
 							Add simulation model of the small
@@ -412,7 +413,7 @@
 							Redesign the hardware to increase the roll
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
 					</section>
-					<section>
+					<section data-timing="25">
 						<aside class="notes">
 							The missing piece here was a serial communication protocol.
 
@@ -469,7 +470,7 @@
 							</div>
 						</div>
 					</section>
-					<section>
+					<section data-timing="2">
 						<aside class="notes">
 							Next we move onto improving the release procedure.
 						</aside>
@@ -478,7 +479,7 @@
 							Automate data transfer with the
 							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
 						<p class="fragment">
-							Improve release procedure&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
+							Improve physical release procedure&nbsp;<span class="invisible c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
 						</p>
 						<p class="invisible">
 							Add simulation model of the small
@@ -487,17 +488,23 @@
 							Redesign the hardware to increase the roll
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
 					</section>
-					<section>
+					<section data-timing="35">
 						<aside class="notes">
-							For each controller, the robot must be released from vertical just before the robot starts
-							controlling itself. This was originally done with an LED.
+							<p>For each controller, the robot must be released from vertical just before it starts
+							controlling itself.
 
-							This is done by hand, so reaction time comes into play.
+							This is done by hand, waiting for an LED - so reaction time comes into play.
 
 							You can see we can get a small improvement by switching to an audio queue - but we can do even
 							better if we reverse the roles, and have the robot respond to the human instead of the other way around.
+
+							We do this by adding a switch that is released at the same time as the robot.</p>
+
+							The other issue is pilco assumes the robot is released in the same orientation each time.
+							Since building a rig or learning this orientation was impractical, I chose to instead simply
+							inform pilco of the initial orientation via the accelerometer.
 						</aside>
-						<h3>Release procedure</h3>
+						<h3>Physical release procedure</h3>
 						<h4>Reaction times</h4>
 						<div class="two-col">
 							<div>
@@ -521,16 +528,16 @@
 							</ul>
 						</div>
 					</section>
-					<section>
+					<section data-timing="4">
 						<aside class="notes">
-							Next we move onto adding an accurate simulation model
+							Back to our list of improvements, we move onto adding an accurate simulation model
 						</aside>
 						<h2>Suggested Improvements</h2>
 						<p>
 							Automate data transfer with the
 							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
 						<p>
-							Improve release procedure&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
+							Improve physical release procedure&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
 						</p>
 						<p class="fragment">
 							Add simulation model of the small
@@ -539,7 +546,7 @@
 							Redesign the hardware to increase the roll
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong></p>
 					</section>
-					<section>
+					<section data-timing="18">
 						<aside class="notes">
 							Pilco contains simulations primarily for testing reasons - its much faster to try learning
 							a controller on a system that doesn't require physical intervention to reset.
@@ -553,7 +560,7 @@
 						<p>Only have a model for the 1m unicycle</p>
 						<p>Approximations of physical parameters good enough</p>
 					</section>
-					<section>
+					<section data-timing="9">
 						<aside class="notes">
 							The last improvement suggested was the most involved one, suggesting that the robot needs
 							to be able to fall over further in roll to learn.
@@ -578,7 +585,7 @@
 				</section>
 
 				<section data-background-iframe="loss.html">
-					<section>
+					<section data-timing="15">
 						<h3>Effect of roll limit</h3>
 						<div class="fill-photo" style="background-image: url(images/rolllimit.png); flex: 1"></div>
 						<aside class="notes">
@@ -588,9 +595,9 @@
 						Let's take a look at the performance of the simulation under different roll limits.
 						</aside>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="6">
 						<aside class="notes">
-							An easy way to measure this is simply how long the robot stays upright, as a function of iteration number.
+							An easy metric for performance is the length of time the robot stays upright, as a function of iteration number.
 							Here's what we get for an idealized unicycle.
 						</aside>
 						<div class="abs-tc mathbox-outline-2">\[
@@ -601,9 +608,9 @@
 							<span class="c-blue">Idealized</span>
 						</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="6">
 						<aside class="notes">
-							And here's the unicycle with the roll limit modelled. Clearly, there's a problem.
+							And here's the unicycle with the physical roll limit modelled. Clearly, there's a problem.
 							Earlier work suggested we redo the frame to reduce this - optimistically, 45 degrees is achievable.
 						</aside>
 						<div class="abs-tc mathbox-outline-2">\[
@@ -616,7 +623,7 @@
 							<span class="c-yellow">Current</span>
 						</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="3">
 						<aside class="notes">
 							But that doesn't really help.
 							We can't get much more from this graph as is.
@@ -633,12 +640,12 @@
 							<span class="c-yellow">Current</span>
 						</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="4">
 						<aside class="notes">
 							Let's add a line to represent each run of the robot...
 						</aside>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="16">
 						<aside class="notes">
 							so that we can introduce another dimension, plotting the loss function over time.
 
@@ -655,12 +662,12 @@
 							\right]\right)
 						\]</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="8">
 						<aside class="notes">
 
 							Falling over when the loss function is low makes the controller think it is doing quite
 							well - we need our loss function to be close to 1 once a fall has occured in order to
-							effectively teach the controller not to fall.
+							effectively teach the controller not to fall or get close to falling.
 						</aside>
 						<div class="abs-tc mathbox-outline-2">\[
 							\text{Loss}(\mathbf{x}) = 1 - \exp\left(-\tfrac{1}{2}\left[
@@ -669,7 +676,7 @@
 							\right]\right)
 						\]</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="10">
 						<aside class="notes">
 							Pilco also tracks the expected distribution of loss functions at a given time, here
 							shown for the 45th iteration, which shows us that not only that the loss indicates that
@@ -687,8 +694,10 @@
 							Before, showing distribution of predictions
 						</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="12">
 						<aside class="notes">
+							We do this by adding an additional term including the roll angle.
+
 							As soon as we do this, we see that all of our runs last much longer.
 
 							I'll show this from the original view for good measure, so we can compare before and after one more time.
@@ -703,7 +712,7 @@
 							After, showing distribution of predictions
 						</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="5">
 						<aside class="notes">
 						</aside>
 						<div class="abs-tc mathbox-outline-2">\[
@@ -713,34 +722,46 @@
 							\right]\right)
 						\]</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="0">
 						<aside class="notes">
 						</aside>
 						<div class="abs-tc mathbox-outline-2">
 							Before
 						</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="10">
 						<aside class="notes">
 							This investigation showed that with a corrected loss, a simulated unicycle with a 17 degree
-							roll limit is able to perform very similarly to one with a 45-degree limit
+							roll limit is able to perform very similarly to one with a 45-degree limit, suggesting...
 						</aside>
 						<div class="abs-tc mathbox-outline-2">
 							With <span class="c-purple">roll loss term</span>
 						</div>
 					</section>
-					<section data-transition="fade">
+					<section data-transition="fade" data-timing="20">
 						<h2>Suggested Improvements</h2>
+						<p>
+							Automate data transfer with the
+							hardware&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
+						<p>
+							Measure initial robot orientation
+							accelerometer&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span>
+						</p>
+						<p>
+							Add simulation model of the small
+							unicycle&nbsp;<span class="c-green mathbox-outline-2" style="font-size: 1.5em">✔</span></p>
 						<p>
 							Redesign the hardware to increase the roll
 							limit&nbsp;<strong class="c-yellow mathbox-outline-2" style="font-size: 1.5em">?</strong>
 						</p>
-						<em class="c-red fragment">✘ Improvement is small after fixing loss</em>
+						<em class="c-red fragment">✘ Improvement is small after fixing the loss function</em>
 					</section>
 				</section>
 
-				<section>
+				<section data-timing="30">
 					<aside class="notes">
+						After making all these fixes, here are the results on the hardware.
+
 						This slide is unfortunate for two reasons.
 
 						The graph is much less exciting, but also you can see that almost no lerarning was observed on
@@ -758,7 +779,7 @@
 					<div class="fill-photo fragment" style="background-image: url(images/hardware-results.png); flex: 1"></div>
 				</section>
 
-				<section>
+				<section data-timing="16">
 					<aside class="notes">
 						Summarizing the progress during the master's project, I (read slides)
 					</aside>
@@ -771,7 +792,7 @@
 							Resolved extensive problems with the current software and hardware stack
 						</li>
 						<li>
-							Achieved improve controller performance in simulation.
+							Achieved improved controller performance in simulation.
 						</li>
 						<li>
 							Was ultimately unsuccessful in balancing the real robot
@@ -780,7 +801,7 @@
 				</section>
 
 				<section>
-					<section>
+					<section data-timing="14">
 						<h2>Future work</h2>
 						<ul>
 							<li>Investigate why learning failed experimentally</li>
@@ -799,6 +820,14 @@
 						</ul>
 					</section>
 					<section>
+						<aside class="notes" data-timing="21">
+							The left column of these plots show the directions the motors need to turn for a given
+							unicycle orientation, derived by thought experiment. Clearly, the dividing line in the
+							plot for the turntable motor is not a linear function - it turns out to be quadratic.
+
+							It should come as no surprise then that the attempts to learn a linear controller, shown in
+							the right two columns, were not very successful.
+						</aside>
 						<h3>Quadratic controller</h3>
 						<div class="fill-photo" style="background-image: url(images/quadratic.png); flex: 1"></div>
 						<p style="font-size: 80%">
@@ -809,6 +838,9 @@
 				</section>
 
 				<section>
+					<aside class="notes" data-timing="5">
+						I'll end with links to this presentation, the thesis, and relevant source code
+					</aside>
 					<h1>Links to resources</h1>
 					<a href="https://github.com/eric-wieser/unicycle-embedded">Embedded code</a>
 					<a href="https://github.com/eric-wieser/pilco-fork">Matlab code</a>
@@ -817,7 +849,7 @@
 					<small>(<code>https://eric-wieser.github.io/masters-presentation</code>)</small>
 				</section>
 
-				<section>
+				<section data-timing="0">
 					<h1>Questions?</h1>
 				</section>
 			</div>
@@ -847,8 +879,9 @@
 					mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
 					config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
 				},
-
+				defaultTiming: 40,
 				history: true,
+				viewDistance: 100,
 				// width: "100%",
 				// height: "100%",
 				// margin: 0,
